@@ -83,6 +83,10 @@ details[open] summary { margin-bottom: 0.5rem; }
 .formula-card .formula-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.25rem; }
 .formula-card .formula-latex { font-size: 1rem; margin: 0.5rem 0; }
 
+/* Table rendering within key tables */
+.card table { margin-top: 0.5rem; }
+.card table td { font-family: var(--mono); font-size: 0.78rem; }
+
 /* Figure cards */
 .figure-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; margin-bottom: 0.5rem; }
 .figure-card img { max-width: 100%; border-radius: 4px; margin-bottom: 0.5rem; }
@@ -266,8 +270,29 @@ details[open] summary { margin-bottom: 0.5rem; }
     {% if tbl.caption %}
     <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">{{ tbl.caption }}</p>
     {% endif %}
+    {% if tbl.rows and tbl.rows | length > 0 %}
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          {% for cell in tbl.rows[0] %}
+          <th>{{ cell }}</th>
+          {% endfor %}
+        </tr>
+        {% for row in tbl.rows[1:] %}
+        <tr>
+          {% for cell in row %}
+          <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    {% endif %}
     {% if tbl.description %}
-    <p style="font-size:0.85rem">{{ tbl.description }}</p>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">{{ tbl.description | safe }}</p>
+    </details>
     {% endif %}
   </div>
   {% endfor %}

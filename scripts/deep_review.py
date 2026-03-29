@@ -287,9 +287,12 @@ def run_review(arxiv_id: str, level: int, profile: dict) -> dict:
         print(f"Running Level 2 deep extraction with {model}...")
         result = client.chat_json(system, user, model=model, max_tokens=16384)
 
-        # Inject figure URLs from structured parsing into result
-        if structured and structured.get("figures"):
-            _inject_figure_urls(result, structured["figures"])
+        # Inject parsed content from ar5iv into LLM result
+        if structured:
+            if structured.get("figures"):
+                _inject_figure_urls(result, structured["figures"])
+            if structured.get("tables"):
+                _inject_table_data(result, structured["tables"])
 
     # Ensure paper_id and level are set
     result["paper_id"] = arxiv_id
@@ -316,6 +319,27 @@ def _inject_figure_urls(result: dict, parsed_figures: list[dict]) -> None:
         if not kf.get("url"):
             fig_id = kf.get("figure_id", "").lower()
             kf["url"] = url_map.get(fig_id, url_map.get(fig_id.replace("fig.", "figure"), None))
+
+
+def _inject_table_data(result: dict, parsed_tables: list[dict]) -> None:
+    """Inject parsed table HTML/rows from ar5iv into LLM-extracted key_tables."""
+    key_tables = result.get("experiments", {}).get("key_tables", [])
+    if not key_tables:
+        return
+    # Build lookup by table ID (case-insensitive)
+    table_map = {}
+    for t in parsed_tables:
+        table_map[t["id"].lower()] = t
+        # Also map by number
+        num_match = re.search(r'\d+', t["id"])
+        if num_match:
+            table_map[f"table {num_match.group(0)}"] = t
+    for kt in key_tables:
+        tbl_id = kt.get("table_id", "").lower()
+        parsed = table_map.get(tbl_id, table_map.get(tbl_id.replace("tbl.", "table"), None))
+        if parsed:
+            kt["rows"] = parsed.get("rows", [])
+            kt["html"] = parsed.get("html", "")
 
 
 def save_results(result: dict, level: int, profile: dict) -> tuple[Path, Path | None]:

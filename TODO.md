@@ -4,11 +4,15 @@
 - [x] Config/schema foundation (schema.json, profiles, LLM client)
 - [x] Deep review Level 1 + Level 2 extraction
 - [x] HTML report with editorial aesthetic
-- [x] Multi-provider LLM client (Anthropic, OpenAI, Gemini, Runway)
-- [x] SKILL.md for Claude Code integration
+- [x] Multi-provider LLM client (Anthropic, OpenAI, Gemini, Runway, Custom)
 - [x] Enhanced ar5iv parsing (tables, figures, formulas)
 - [x] MathJax formula rendering in HTML reports
 - [x] Bold/highlight emphasis for key terms
+- [x] Key tables render actual parsed data (not just descriptions)
+- [x] Figure URL injection from ar5iv
+- [x] Modular SKILL.md with progressive disclosure (references/)
+- [x] Profile-driven design (no hardcoded researcher info)
+- [x] Git versioning (main + dev branches)
 
 ## Phase 1.5: Remaining Core Features
 - [ ] Taxonomy management (taxonomy.py: init, bookmark, dismiss, show)

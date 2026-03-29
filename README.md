@@ -28,23 +28,38 @@ uv run python scripts/deep_review.py --paper 2601.05536 --level 2 --profile conf
 ## Project Structure
 
 ```
-config/                  # Schema and researcher profiles
-  schema.json            # Extraction schema
-  profiles/yiming.yaml   # Researcher profile (anchor papers, framework, scoring)
+SKILL.md                     # Lean skill router (Claude Code integration)
+references/                  # Detailed reference docs (loaded on demand)
+  deep-review.md             # Deep review CLI, schema, output format
+  profile-system.md          # Profile field reference, new researcher setup
+  taxonomy.md                # Taxonomy management (planned)
+  cross-compare.md           # Cross-paper comparison (planned)
+config/                      # Schema and researcher profiles
+  schema.json                # Extraction schema
+  profiles/yiming.yaml       # Researcher profile (anchor papers, framework, scoring)
 scripts/
-  deep_review.py         # Main extraction CLI
+  deep_review.py             # Main extraction CLI
   utils/
-    llm_client.py        # Multi-provider LLM client (Anthropic, OpenAI, Gemini, Runway)
-    arxiv_client.py      # arXiv API + ar5iv structured parser
-    schema_validator.py   # Lightweight extraction validation
-    html_renderer.py     # Jinja2 renderer with bold post-processing
+    llm_client.py            # Multi-provider LLM client (Anthropic, OpenAI, Gemini, Runway)
+    arxiv_client.py          # arXiv API + ar5iv structured parser
+    schema_validator.py      # Lightweight extraction validation
+    html_renderer.py         # Jinja2 renderer with bold post-processing
 templates/
-  deep_review.html       # HTML report template (MathJax, editorial aesthetic)
+  deep_review.html           # HTML report template (MathJax, editorial aesthetic)
 data/
-  reviews/               # Per-paper extraction JSONs
-  reports/               # Generated HTML reports
-SKILL.md                 # Claude Code skill definition
+  reviews/                   # Per-paper extraction JSONs
+  reports/                   # Generated HTML reports
 ```
+
+## Skill Architecture
+
+This toolkit follows Claude Code skill best practices with **progressive disclosure**:
+
+1. **SKILL.md** (~50 lines) — always in context, lean router with trigger phrases
+2. **references/** — loaded on demand when Claude needs detail for a specific capability
+3. **scripts/** — Python CLI tools executed by Claude
+
+All researcher-specific configuration lives in `config/profiles/<name>.yaml`. See `references/profile-system.md` for the full field reference.
 
 ## Configuration
 

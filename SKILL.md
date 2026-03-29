@@ -1,105 +1,57 @@
 ---
 name: research-paper-toolkit
-description: Research paper deep review, taxonomy management, and cross-paper comparison toolkit for semantic filter evaluation research.
+description: >-
+  Research paper deep review, taxonomy management, and cross-paper comparison toolkit.
+  Use when the user asks to "deep review a paper", "analyze paper", "extract paper",
+  provides an arXiv ID or URL, asks to "bookmark" or "dismiss" a paper, requests a
+  "cross-comparison", or mentions taxonomy management. Also use when the user asks
+  about paper extraction, research gap identification, or structured paper analysis.
 ---
 
-You are a research paper analysis assistant integrated with the research-paper-toolkit. You help researchers discover, extract, compare, and organize academic papers.
+# Research Paper Toolkit
 
-## Available Commands
+Structured paper extraction, taxonomy management, and cross-paper comparison. Profile-driven — all researcher-specific configuration lives in `config/profiles/<name>.yaml`.
 
-All commands run from the project root: `/Users/shiyiming2/Documents/baolab/research-paper-toolkit/`
+## Quick Reference
 
-### Deep Paper Review
+| Capability | Command | Details |
+|------------|---------|---------|
+| **Deep Review** | `uv run python scripts/deep_review.py --paper <id> --level <1\|2> --profile config/profiles/<name>.yaml` | See `references/deep-review.md` |
+| **Taxonomy** | `uv run python scripts/taxonomy.py <action> ...` | See `references/taxonomy.md` (planned) |
+| **Cross-Compare** | `uv run python scripts/cross_compare.py --papers ...` | See `references/cross-compare.md` (planned) |
 
-**On-demand trigger:** User says "deep review", "analyze paper", "extract paper", or provides an arXiv ID/URL.
+## Deep Review (Working)
 
-```bash
-# Level 1 — quick metadata extraction (~2-3k tokens, cheap model)
-uv run python scripts/deep_review.py --paper <arxiv_id_or_url> --level 1 --profile config/profiles/yiming.yaml
+Two-level extraction from arXiv papers:
+- **Level 1**: Cheap model, abstract-only → metadata + method summary (~2-3k tokens)
+- **Level 2**: Strong model, full paper text → framework mapping + formulas + figures + tables + analysis (~10-15k tokens)
 
-# Level 2 — full deep extraction with framework mapping (~10-15k tokens, strong model)
-uv run python scripts/deep_review.py --paper <arxiv_id_or_url> --level 2 --profile config/profiles/yiming.yaml
-```
+Output: JSON (`data/reviews/`) + HTML report (`data/reports/reviews/`). For full details including schema fields and extraction options, read `references/deep-review.md`.
 
-**Outputs:**
-- JSON: `data/reviews/{paper_id}.json` — structured extraction result
-- HTML: `data/reports/reviews/{paper_id}_L{level}.html` — human-readable report
+## Profile System
 
-**When to use Level 1 vs Level 2:**
-- Level 1: Quick screening, daily scan auto-trigger for papers scoring >= 8
-- Level 2: User explicitly requests deep analysis, or paper is an anchor/important paper
+Each researcher has a profile YAML defining: research scope, anchor papers, analytical framework, scoring criteria, and LLM preferences. For the complete field reference and how to create a new profile, read `references/profile-system.md`.
 
-### Taxonomy Management (Future)
+## Taxonomy Management (Planned)
 
-```bash
-uv run python scripts/taxonomy.py init --profile config/profiles/yiming.yaml
-uv run python scripts/taxonomy.py bookmark --paper <id> --rating <1-5> --category <path>
-uv run python scripts/taxonomy.py dismiss --paper <id> --reason "..."
-uv run python scripts/taxonomy.py show
-```
+Hierarchical, multi-label paper organization: bookmark, dismiss, categorize. Read `references/taxonomy.md` for the planned interface.
 
-### Cross-Paper Comparison (Future)
+## Cross-Paper Comparison (Planned)
 
-```bash
-uv run python scripts/cross_compare.py --papers <id1> <id2> ... --profile config/profiles/yiming.yaml
-```
-
-## Scheduled Task Mode — Daily Paper Scanning
-
-This toolkit can be configured as a Claude scheduled task for automated daily paper scanning.
-
-### Daily Scan Workflow
-
-1. Search arXiv for papers published in the last 1-2 days related to the researcher's core directions
-2. Filter by profile keywords, deduplicate against existing `data/reviews/`
-3. Apply preference-adjusted scoring (reads `data/preferences.jsonl`)
-4. Output daily digest Markdown to the configured `output_dir`
-5. For papers scoring >= 8: auto-trigger Level 1 deep review
-6. Save Level 1 results to `data/reviews/{paper_id}.json`
-
-### Research Context
-
-The primary researcher is Yiming Shi (UQ), studying **Semantic Filter Evaluation** for LLM-based data processing under Prof. Zhifeng Bao and Dr. Hai Lan, targeting VLDB submission.
-
-**Core research directions:**
-- Semantic Filter / Document Processing with quality guarantees
-- Cost-Aware LLM Execution (model cascades, budget-constrained inference)
-- Agent Workflow Optimization
-
-**Anchor papers:** BARGAIN, ThriftLLM, Nirvana, LOTUS, CSV, Task Cascades, ScaleDoc
-
-**Framework:** Dr. Lan's 7-Layer Semantic Filter Framework
-1. Data Representation Layer
-2. Candidate Executor / Proxy Layer
-3. Unit of Decision Layer
-4. Predicate Transformation Layer
-5. Calibration / Sampling Layer
-6. Routing / Action Layer
-7. Guarantee Layer
-
-### Scoring Criteria
-
-- Core keywords (boost): semantic filter, LLM predicate, accuracy guarantee, cost-aware, model cascade
-- Exclude keywords: text-to-sql, table QA, database tuning, database internals, robotics
-- Highlight authors: Zeighami, Parameswaran, Shankar, Fernandez, Trummer
-- Boost venues: SIGMOD, VLDB, PVLDB, KDD
+Compare papers on shared datasets, metrics, and assumptions. Identifies research gaps. Read `references/cross-compare.md` for the planned interface.
 
 ## Anti-Hallucination Rules
 
 - Every extracted claim MUST include a `source` field (section number, table ref, or "abstract")
-- If information cannot be found, use `null` with `"source": "not_found"` — NEVER fabricate
-- Cross-paper comparisons only use data from validated Level 1/Level 2 extractions
-- Schema validation rejects any result missing required source fields
+- Missing info → `null` with `"source": "not_found"` — NEVER fabricate
+- Cross-paper comparisons only use validated Level 1/Level 2 extraction data
 
-## File Structure
+## Data Layout
 
 ```
-data/
-  reviews/{paper_id}.json    — per-paper extraction results
-  reports/reviews/           — HTML reports
-  reports/daily/             — daily digest reports
-  reports/comparisons/       — cross-paper comparison dashboards
-  taxonomy.json              — taxonomy tree
-  preferences.jsonl          — user preference log
-config/profiles/yiming.yaml  — researcher profile
+config/profiles/<name>.yaml   — researcher profiles
+data/reviews/{paper_id}.json  — extraction results
+data/reports/reviews/          — HTML reports
+data/taxonomy.json             — taxonomy tree (planned)
+data/preferences.jsonl         — preference log (planned)
 ```
