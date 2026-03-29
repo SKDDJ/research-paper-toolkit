@@ -8,18 +8,25 @@ current_deadline: "VLDB June 2026"
 
 anchor_papers:
   - id: bargain
-    title: "Beyond Linear LLM Invocation: An Efficient and Effective Semantic Filter Paradigm"
+    arxiv_id: "2509.02896"
+    title: "Cut Costs, Not Accuracy: LLM-Powered Data Processing with Guarantees"
   - id: thriftllm
+    arxiv_id: "2501.04901"
     title: "ThriftLLM: On Cost-Effective Selection of Large Language Models for Classification"
   - id: nirvana
+    arxiv_id: "2511.19830"
     title: "Beyond Relational: Semantic-Aware Multi-Modal Analytics"
   - id: lotus
-    title: "Semantic Operators and Their Optimization (LOTUS)"
+    arxiv_id: "2407.11418"
+    title: "Semantic Operators: A Declarative Model for Rich, AI-based Data Processing"
   - id: csv
-    title: "Cut Costs Not Accuracy: LLM-Powered Data Processing with Guarantees"
+    arxiv_id: "2603.04799"
+    title: "Beyond Linear LLM Invocation: An Efficient and Effective Semantic Filter Paradigm"
   - id: task_cascades
+    arxiv_id: "2601.05536"
     title: "Task Cascades for Efficient Unstructured Data Processing"
   - id: scaledoc
+    arxiv_id: "2509.12610"
     title: "Scaling LLM-based Predicates over Large Document Collections"
 
 framework:

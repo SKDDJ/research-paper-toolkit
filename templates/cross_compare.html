@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Paper Comparison — {{ framework_name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --border: #e8e6e1; --text: #1a1a1a;
+  --muted: #6b6860; --accent: #2d5a27; --accent-bg: #eef4ed; --accent-border: #c2d9bf;
+  --warn: #8b5e00; --warn-bg: #fef7ec; --warn-border: #f0d9a0;
+  --danger: #8b1a1a; --danger-bg: #fdf0f0;
+  --blue: #1a4f8b; --blue-bg: #edf3fb; --blue-border: #b8d0eb;
+  --purple: #4a2d7a; --purple-bg: #f3eff8;
+  --radius: 6px; --font: 'DM Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif; --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; margin-bottom: 0.5rem; }
+.subtitle { font-size: 0.9rem; color: var(--muted); margin-bottom: 1.5rem; }
+.section { margin-bottom: 2rem; }
+.section-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.section-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: white; flex-shrink: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.6rem; background: #f5f4f0; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf9f6; }
+.check { color: var(--accent); font-weight: 600; text-align: center; }
+.miss { color: #ccc; text-align: center; }
+.badge { display: inline-flex; padding: 2px 8px; border-radius: 99px; font-size: 0.7rem; font-weight: 500; }
+.badge-high { background: var(--danger-bg); color: var(--danger); border: 1px solid #e8c0c0; }
+.badge-medium { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+.badge-low { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-info { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+
+/* Framework overlay */
+.fw-overlay { display: grid; gap: 0.5rem; }
+.fw-row { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; border-left: 3px solid var(--blue); }
+.fw-row.sparse { border-left-color: var(--danger); background: #fefafa; }
+.fw-row-header { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+.fw-row-coverage { font-size: 0.7rem; font-family: var(--mono); }
+.fw-papers { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+.fw-paper { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.fw-paper strong { color: var(--text); font-weight: 500; }
+.fw-paper.no-data { color: #ccc; font-style: italic; }
+
+/* Gap cards */
+.gap-card { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.5rem; border-left: 3px solid; }
+.gap-card.high { background: var(--danger-bg); border-color: var(--danger); }
+.gap-card.medium { background: var(--warn-bg); border-color: var(--warn); }
+.gap-card.low { background: var(--blue-bg); border-color: var(--blue); }
+.gap-card.info { background: var(--accent-bg); border-color: var(--accent); }
+.gap-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
+.gap-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius); }
+details summary:hover { background: #f5f4f0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.overflow-x { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Cross-Paper Comparison</h1>
+<p class="subtitle">{{ total_papers }} papers compared | {{ comparison_date }} | Framework: {{ framework_name }}</p>
+
+<!-- PAPER OVERVIEW -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">P</span> Paper Overview</div>
+  <div class="overflow-x">
+  <table>
+    <tr><th>ID</th><th>Title</th><th>Venue</th><th>Year</th><th>Summary</th></tr>
+    {% for p in papers %}
+    <tr>
+      <td style="font-family:var(--mono); font-weight:600; white-space:nowrap">{{ p.short_id }}</td>
+      <td><a href="https://arxiv.org/abs/{{ p.arxiv_id }}" style="color:var(--blue); text-decoration:none">{{ p.title }}</a></td>
+      <td style="white-space:nowrap">{{ p.venue }}</td>
+      <td>{{ p.year }}</td>
+      <td style="font-size:0.78rem; color:var(--muted)">{{ p.one_line_summary }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<!-- RESEARCH GAPS -->
+{% if gaps %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">!</span> Research Gaps & Opportunities</div>
+  {% for gap in gaps %}
+  <div class="gap-card {{ gap.severity }}">
+    <div class="gap-title">{{ gap.title }} <span class="badge badge-{{ gap.severity }}">{{ gap.severity }}</span></div>
+    <div class="gap-desc">{{ gap.description | safe }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- FRAMEWORK OVERLAY -->
+{% if framework_overlay %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Framework Mapping Overlay — {{ framework_name }}</div>
+  <div class="fw-overlay">
+    {% for row in framework_overlay %}
+    <div class="fw-row {% if row.coverage <= total_papers // 3 %}sparse{% endif %}">
+      <div class="fw-row-header">
+        <span>{{ loop.index }}. {{ row.layer }}</span>
+        <span class="fw-row-coverage">{{ row.coverage }}/{{ total_papers }} papers</span>
+      </div>
+      <div class="fw-papers">
+        {% for p in row.papers %}
+        {% if p.has_data %}
+        <div class="fw-paper"><strong>{{ p.short_id }}:</strong> {{ p.detail | safe }}</div>
+        {% else %}
+        <div class="fw-paper no-data">{{ p.short_id }}: —</div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- DATASET COVERAGE -->
+{% if dataset_matrix %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#2d5a27">D</span> Dataset Coverage Matrix</div>
+  <div class="card overflow-x">
+    <table>
+      <tr>
+        <th>Dataset</th>
+        <th>Domain</th>
+        {% for pid in paper_ids %}
+        <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">{{ pid }}</th>
+        {% endfor %}
+      </tr>
+      {% for ds in dataset_matrix %}
+      <tr>
+        <td style="font-weight:500">{{ ds.name }}</td>
+        <td style="color:var(--muted); font-size:0.78rem">{{ ds.domain }}</td>
+        {% for pid in paper_ids %}
+        {% if pid in ds.papers %}
+        <td class="check">&#10003;</td>
+        {% else %}
+        <td class="miss">—</td>
+        {% endif %}
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- BASELINE COMPARISON -->
+{% if baseline_matrix %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">B</span> Baseline Usage</div>
+  <details open>
+    <summary>{{ baseline_matrix | length }} baselines across {{ total_papers }} papers</summary>
+    <div class="card overflow-x">
+      <table>
+        <tr>
+          <th>Baseline</th>
+          {% for pid in paper_ids %}
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">{{ pid }}</th>
+          {% endfor %}
+        </tr>
+        {% for bl in baseline_matrix %}
+        <tr>
+          <td style="font-weight:500">{{ bl.name }}</td>
+          {% for pid in paper_ids %}
+          {% if pid in bl.papers %}
+          <td class="check">&#10003;</td>
+          {% else %}
+          <td class="miss">—</td>
+          {% endif %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </details>
+</div>
+{% endif %}
+
+<!-- METRIC COMPARISON -->
+{% if metric_matrix %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">M</span> Metrics Used</div>
+  <details>
+    <summary>{{ metric_matrix | length }} metrics across {{ total_papers }} papers</summary>
+    <div class="card overflow-x">
+      <table>
+        <tr>
+          <th>Metric</th>
+          <th>Definition</th>
+          {% for pid in paper_ids %}
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">{{ pid }}</th>
+          {% endfor %}
+        </tr>
+        {% for m in metric_matrix %}
+        <tr>
+          <td style="font-weight:500">{{ m.name }}</td>
+          <td style="color:var(--muted); font-size:0.78rem">{{ m.definition }}</td>
+          {% for pid in paper_ids %}
+          {% if pid in m.papers %}
+          <td class="check">&#10003;</td>
+          {% else %}
+          <td class="miss">—</td>
+          {% endif %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </details>
+</div>
+{% endif %}
+
+<!-- ASSUMPTIONS -->
+{% if assumptions %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions Across Papers</div>
+  <details>
+    <summary>{{ assumptions | length }} assumptions from {{ total_papers }} papers</summary>
+    <div class="card">
+      <table>
+        <tr><th>Paper</th><th>Type</th><th>Assumption</th></tr>
+        {% for a in assumptions %}
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">{{ a.paper }}</td>
+          <td>{% if a.explicit %}<span style="color:var(--accent)">Explicit</span>{% else %}<span style="color:var(--warn)">Implicit</span>{% endif %}</td>
+          <td style="font-size:0.82rem">{{ a.assumption | safe }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </details>
+</div>
+{% endif %}
+
+<!-- LIMITATIONS -->
+{% if limitations %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations Across Papers</div>
+  <details>
+    <summary>{{ limitations | length }} limitations from {{ total_papers }} papers</summary>
+    <div class="card">
+      <table>
+        <tr><th>Paper</th><th>Limitation</th></tr>
+        {% for l in limitations %}
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">{{ l.paper }}</td>
+          <td style="font-size:0.82rem">{{ l.limitation | safe }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </details>
+</div>
+{% endif %}
+
+<!-- CROSS-REFERENCES -->
+{% if cross_references %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">X</span> Cross-References Between Papers</div>
+  <div class="card">
+    <table>
+      <tr><th>From</th><th>To</th><th>Relationship</th><th>Detail</th></tr>
+      {% for ref in cross_references %}
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">{{ ref.from_paper }}</td>
+        <td style="font-family:var(--mono); font-weight:500">{{ ref.to_paper }}</td>
+        <td><span class="badge badge-info">{{ ref.relationship | replace('_', ' ') }}</span></td>
+        <td style="font-size:0.82rem">{{ ref.detail | safe }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="footer">
+  <p>Cross-Paper Comparison — Research Paper Toolkit v0.1</p>
+  <p>Generated: {{ comparison_date }} | {{ total_papers }} papers | Framework: {{ framework_name }}</p>
+</div>
+
+</div>
+</body>
+</html>

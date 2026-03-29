@@ -374,32 +374,86 @@ def save_results(result: dict, level: int, profile: dict) -> tuple[Path, Path | 
     return json_path, html_path
 
 
+def _review_and_save(arxiv_id: str, level: int, profile: dict) -> bool:
+    """Run review + validate + save for a single paper. Returns True on success."""
+    try:
+        result = run_review(arxiv_id, level, profile)
+        errors = validate_extraction(result, level)
+        if errors:
+            print(f"\nValidation warnings ({len(errors)}):")
+            for e in errors:
+                print(f"  - {e}")
+        else:
+            print("\nValidation: OK")
+        json_path, html_path = save_results(result, level, profile)
+        print(f"  JSON: {json_path}")
+        if html_path:
+            print(f"  HTML: {html_path}")
+        return True
+    except Exception as e:
+        print(f"\nERROR processing {arxiv_id}: {e}")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(description="Deep paper review extraction")
-    parser.add_argument("--paper", required=True, help="arXiv ID or URL")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--paper", help="arXiv ID or URL (single paper)")
+    group.add_argument("--papers", nargs="+", help="Multiple arXiv IDs for batch extraction")
+    group.add_argument("--batch-anchor", action="store_true", help="Extract all anchor papers from profile")
     parser.add_argument("--level", type=int, choices=[1, 2], default=1, help="Extraction level")
     parser.add_argument("--profile", required=True, help="Path to researcher profile YAML")
+    parser.add_argument("--skip-existing", action="store_true", default=True,
+                        help="Skip papers that already have extraction JSON (default: True)")
     args = parser.parse_args()
 
     profile = load_profile(args.profile)
-    result = run_review(args.paper, args.level, profile)
+    reviews_dir = PROJECT_ROOT / "data" / "reviews"
 
-    # Validate
-    errors = validate_extraction(result, args.level)
-    if errors:
-        print(f"\nValidation warnings ({len(errors)}):")
-        for e in errors:
-            print(f"  - {e}")
-    else:
-        print("\nValidation: OK")
+    # Build list of paper IDs to process
+    if args.paper:
+        paper_ids = [args.paper]
+    elif args.papers:
+        paper_ids = args.papers
+    elif args.batch_anchor:
+        paper_ids = []
+        for p in profile.get("anchor_papers", []):
+            aid = p.get("arxiv_id")
+            if aid:
+                paper_ids.append(aid)
+            else:
+                print(f"WARNING: anchor paper '{p.get('id', '?')}' has no arxiv_id, skipping")
+        print(f"Found {len(paper_ids)} anchor papers with arXiv IDs")
 
-    # Save
-    json_path, html_path = save_results(result, args.level, profile)
+    # Filter out already-extracted papers
+    if args.skip_existing and len(paper_ids) > 1:
+        to_process = []
+        for pid in paper_ids:
+            from scripts.utils.arxiv_client import normalize_arxiv_id
+            safe = normalize_arxiv_id(pid).replace("/", "_")
+            if (reviews_dir / f"{safe}.json").exists():
+                print(f"Skipping {pid} (already extracted)")
+            else:
+                to_process.append(pid)
+        paper_ids = to_process
+        if not paper_ids:
+            print("All papers already extracted. Nothing to do.")
+            return
 
-    print(f"\nDone! Review saved to:")
-    print(f"  JSON: {json_path}")
-    if html_path:
-        print(f"  HTML: {html_path}")
+    # Process
+    total = len(paper_ids)
+    success = 0
+    for i, pid in enumerate(paper_ids, 1):
+        print(f"\n{'='*60}")
+        print(f"[{i}/{total}] Processing {pid}")
+        print(f"{'='*60}")
+        if _review_and_save(pid, args.level, profile):
+            success += 1
+
+    if total > 1:
+        print(f"\n{'='*60}")
+        print(f"Batch complete: {success}/{total} papers extracted successfully")
+        print(f"{'='*60}")
 
 
 if __name__ == "__main__":

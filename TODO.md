@@ -15,10 +15,11 @@
 - [x] Git versioning (main + dev branches)
 
 ## Phase 1.5: Remaining Core Features
+- [x] Cross-paper comparison (cross_compare.py + comparison.html template)
+- [x] Batch extraction mode (--batch-anchor, --papers flags)
 - [ ] Taxonomy management (taxonomy.py: init, bookmark, dismiss, show)
 - [ ] Daily scan script (port existing SKILL.md logic to Python)
 - [ ] Preference tracking (preferences.py + preferences.jsonl)
-- [ ] Cross-paper comparison (cross_compare.py + comparison.html template)
 
 ## Phase 2: Rich Content & MineRU
 - [ ] MineRU PDF parser integration (magic-pdf as optional dep)

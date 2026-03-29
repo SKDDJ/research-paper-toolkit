@@ -14,6 +14,16 @@ uv run python scripts/deep_review.py --paper <arxiv_id_or_url> --level 2 --profi
 
 Accepts arXiv IDs (`2601.05536`), full URLs (`https://arxiv.org/abs/2601.05536`), or PDF URLs.
 
+### Batch Mode
+
+```bash
+# Extract all anchor papers from profile (skips already-extracted)
+uv run python scripts/deep_review.py --batch-anchor --level 2 --profile config/profiles/<name>.yaml
+
+# Extract specific papers
+uv run python scripts/deep_review.py --papers 2509.02896 2501.04901 --level 2 --profile config/profiles/<name>.yaml
+```
+
 ## Level 1 vs Level 2
 
 | Aspect | Level 1 | Level 2 |

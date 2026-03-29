@@ -17,8 +17,9 @@ Structured paper extraction, taxonomy management, and cross-paper comparison. Pr
 | Capability | Command | Details |
 |------------|---------|---------|
 | **Deep Review** | `uv run python scripts/deep_review.py --paper <id> --level <1\|2> --profile config/profiles/<name>.yaml` | See `references/deep-review.md` |
+| **Batch Extract** | `uv run python scripts/deep_review.py --batch-anchor --level 2 --profile config/profiles/<name>.yaml` | Extract all anchor papers |
+| **Cross-Compare** | `uv run python scripts/cross_compare.py --anchor-papers --profile config/profiles/<name>.yaml` | See `references/cross-compare.md` |
 | **Taxonomy** | `uv run python scripts/taxonomy.py <action> ...` | See `references/taxonomy.md` (planned) |
-| **Cross-Compare** | `uv run python scripts/cross_compare.py --papers ...` | See `references/cross-compare.md` (planned) |
 
 ## Deep Review (Working)
 
@@ -36,9 +37,9 @@ Each researcher has a profile YAML defining: research scope, anchor papers, anal
 
 Hierarchical, multi-label paper organization: bookmark, dismiss, categorize. Read `references/taxonomy.md` for the planned interface.
 
-## Cross-Paper Comparison (Planned)
+## Cross-Paper Comparison (Working)
 
-Compare papers on shared datasets, metrics, and assumptions. Identifies research gaps. Read `references/cross-compare.md` for the planned interface.
+Compare papers on shared datasets, metrics, assumptions, and framework mapping. Auto-identifies research gaps (sparse framework layers, unique datasets, implicit assumptions). Output: HTML dashboard at `data/reports/comparisons/`. Read `references/cross-compare.md` for full details.
 
 ## Anti-Hallucination Rules
 
@@ -50,8 +51,9 @@ Compare papers on shared datasets, metrics, and assumptions. Identifies research
 
 ```
 config/profiles/<name>.yaml   — researcher profiles
-data/reviews/{paper_id}.json  — extraction results
+data/reviews/{paper_id}.json   — extraction results
 data/reports/reviews/          — HTML reports
+data/reports/comparisons/      — cross-paper comparison dashboards
 data/taxonomy.json             — taxonomy tree (planned)
 data/preferences.jsonl         — preference log (planned)
 ```
