@@ -1,0 +1,47 @@
+name: "Yiming Shi"
+affiliation: "University of Queensland"
+advisors: ["Prof. Zhifeng Bao", "Dr. Hai Lan"]
+
+research_scope: "Semantic Filter Evaluation for LLM-based Data Processing"
+target_venues: ["SIGMOD", "VLDB", "KDD", "ICDE"]
+current_deadline: "VLDB June 2026"
+
+anchor_papers:
+  - id: bargain
+    title: "Beyond Linear LLM Invocation: An Efficient and Effective Semantic Filter Paradigm"
+  - id: thriftllm
+    title: "ThriftLLM: On Cost-Effective Selection of Large Language Models for Classification"
+  - id: nirvana
+    title: "Beyond Relational: Semantic-Aware Multi-Modal Analytics"
+  - id: lotus
+    title: "Semantic Operators and Their Optimization (LOTUS)"
+  - id: csv
+    title: "Cut Costs Not Accuracy: LLM-Powered Data Processing with Guarantees"
+  - id: task_cascades
+    title: "Task Cascades for Efficient Unstructured Data Processing"
+  - id: scaledoc
+    title: "Scaling LLM-based Predicates over Large Document Collections"
+
+framework:
+  name: "Dr. Lan's 7-Layer Semantic Filter Framework"
+  layers:
+    - "Data Representation Layer"
+    - "Candidate Executor / Proxy Layer"
+    - "Unit of Decision Layer"
+    - "Predicate Transformation Layer"
+    - "Calibration / Sampling Layer"
+    - "Routing / Action Layer"
+    - "Guarantee Layer"
+
+scoring:
+  core_keywords: ["semantic filter", "LLM predicate", "accuracy guarantee", "cost-aware", "model cascade", "document processing"]
+  exclude_keywords: ["text-to-sql", "table QA", "database tuning", "database internals", "robotics"]
+  highlight_authors: ["Zeighami", "Parameswaran", "Shankar", "Fernandez", "Trummer"]
+  boost_venues: ["SIGMOD", "VLDB", "PVLDB", "KDD"]
+
+llm_config:
+  level1_model: "claude-haiku-4-5-20251001"
+  level2_model: "claude-opus-4-6"
+  provider: "runway"
+
+output_dir: "/Users/shiyiming2/Documents/arxiv_daily_paper"

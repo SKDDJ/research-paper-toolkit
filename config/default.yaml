@@ -1,0 +1,22 @@
+research_scope: ""
+target_venues: []
+current_deadline: ""
+
+anchor_papers: []
+
+framework:
+  name: ""
+  layers: []
+
+scoring:
+  core_keywords: []
+  exclude_keywords: []
+  highlight_authors: []
+  boost_venues: []
+
+llm_config:
+  level1_model: "claude-haiku-4-5-20251001"
+  level2_model: "claude-opus-4-6"
+  provider: "anthropic"
+
+output_dir: "./data/reports"

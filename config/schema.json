@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["paper_id", "metadata", "method", "experiments"],
+  "properties": {
+    "paper_id": { "type": "string", "description": "arXiv ID or DOI" },
+    "extraction_level": { "enum": [1, 2] },
+    "extraction_date": { "type": "string", "format": "date" },
+    "metadata": {
+      "type": "object",
+      "required": ["title", "authors", "venue", "year"],
+      "properties": {
+        "title": { "type": "string" },
+        "authors": { "type": "array", "items": { "type": "string" } },
+        "affiliations": { "type": "array", "items": { "type": "string" } },
+        "venue": { "type": "string" },
+        "year": { "type": "integer" },
+        "arxiv_id": { "type": ["string", "null"] },
+        "doi": { "type": ["string", "null"] },
+        "code_url": { "type": ["string", "null"] },
+        "one_line_summary": { "type": "string", "maxLength": 200 }
+      }
+    },
+    "method": {
+      "type": "object",
+      "properties": {
+        "core_contribution": { "type": "string", "description": "2-3 sentences" },
+        "core_contribution_source": { "type": "string" },
+        "method_components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "theoretical_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "claim": { "type": "string" },
+              "type": { "enum": ["theorem", "lemma", "proposition", "bound", "guarantee"] },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "key_formulas": {
+          "type": "array",
+          "description": "Important equations/formulas from the paper",
+          "items": {
+            "type": "object",
+            "properties": {
+              "formula_id": { "type": "string", "description": "e.g., Eq. 1" },
+              "latex": { "type": "string", "description": "LaTeX representation" },
+              "description": { "type": "string", "description": "What this formula represents" },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "framework_mapping": {
+          "type": "object",
+          "description": "LEVEL 2 ONLY. Maps to researcher's framework.",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "choice": { "type": "string" },
+              "detail": { "type": "string" },
+              "source": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "experiments": {
+      "type": "object",
+      "properties": {
+        "datasets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "source"],
+            "properties": {
+              "name": { "type": "string" },
+              "domain": { "type": "string" },
+              "size": { "type": ["string", "null"] },
+              "description": { "type": "string" },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "baselines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "source"],
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "source"],
+            "properties": {
+              "name": { "type": "string" },
+              "definition": { "type": "string" },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "key_results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["description", "source"],
+            "properties": {
+              "description": { "type": "string" },
+              "metric": { "type": "string" },
+              "value": { "type": ["string", "number", "null"] },
+              "comparison": { "type": ["string", "null"] },
+              "source": { "type": "string", "description": "e.g., Table 2, Figure 3" }
+            }
+          }
+        },
+        "key_figures": {
+          "type": "array",
+          "description": "Important figures from the paper",
+          "items": {
+            "type": "object",
+            "properties": {
+              "figure_id": { "type": "string", "description": "e.g., Figure 3" },
+              "caption": { "type": "string" },
+              "description": { "type": "string", "description": "What this figure shows" },
+              "url": { "type": ["string", "null"], "description": "Image URL from ar5iv" },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "key_tables": {
+          "type": "array",
+          "description": "Important tables from the paper",
+          "items": {
+            "type": "object",
+            "properties": {
+              "table_id": { "type": "string", "description": "e.g., Table 2" },
+              "caption": { "type": "string" },
+              "description": { "type": "string", "description": "What this table shows" },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "settings": {
+          "type": "object",
+          "description": "Experimental configuration details",
+          "properties": {
+            "oracle_model": { "type": ["string", "null"] },
+            "proxy_models": { "type": "array", "items": { "type": "string" } },
+            "hardware": { "type": ["string", "null"] },
+            "accuracy_target": { "type": ["string", "null"] },
+            "other": { "type": "object" }
+          }
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "description": "LEVEL 2 ONLY",
+      "properties": {
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "assumption": { "type": "string" },
+              "explicit": { "type": "boolean", "description": "true if stated in paper, false if implicit" },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "limitation": { "type": "string" },
+              "stated_by_authors": { "type": "boolean" },
+              "source": { "type": "string" }
+            }
+          }
+        },
+        "anchor_cross_references": {
+          "type": "array",
+          "description": "Connections to the researcher's anchor papers",
+          "items": {
+            "type": "object",
+            "properties": {
+              "anchor_paper": { "type": "string" },
+              "relationship": { "enum": ["shared_dataset", "shared_baseline", "extends", "contradicts", "complements"] },
+              "detail": { "type": "string" },
+              "source": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

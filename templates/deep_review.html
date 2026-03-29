@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Deep Review — {{ metadata.title }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --border: #e8e6e1; --text: #1a1a1a;
+  --muted: #6b6860; --accent: #2d5a27; --accent-bg: #eef4ed; --accent-border: #c2d9bf;
+  --warn: #8b5e00; --warn-bg: #fef7ec; --warn-border: #f0d9a0;
+  --danger: #8b1a1a; --danger-bg: #fdf0f0;
+  --blue: #1a4f8b; --blue-bg: #edf3fb; --blue-border: #b8d0eb;
+  --purple: #4a2d7a; --purple-bg: #f3eff8;
+  --radius: 6px; --font: 'DM Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif; --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.paper-header { margin-bottom: 2rem; }
+.paper-header h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 500; }
+.badge-venue { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.badge-year { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-level { background: var(--purple-bg); color: var(--purple); border: 1px solid #d4c8e8; }
+.authors { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.25rem; }
+.authors strong { color: var(--text); font-weight: 500; }
+.institution { font-size: 0.8rem; color: var(--muted); }
+.links { margin-top: 0.5rem; display: flex; gap: 0.75rem; }
+.links a { font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; }
+.links a:hover { text-decoration: underline; }
+.section { margin-bottom: 1.5rem; }
+.section-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.section-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: white; flex-shrink: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+.card-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.src { display: inline-block; font-size: 0.65rem; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; background: #f0eeea; color: var(--muted); margin-left: 4px; cursor: help; border: 1px solid var(--border); }
+.src-missing { background: var(--danger-bg); color: var(--danger); border-color: #e8c0c0; }
+.framework-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+@media (max-width: 600px) { .framework-grid { grid-template-columns: 1fr; } }
+.fw-cell { padding: 0.75rem; border-radius: var(--radius); border-left: 3px solid; }
+.fw-cell h4 { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.fw-cell p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.fw-1 { background: #f0f7ff; border-color: #3b82f6; } .fw-1 h4 { color: #1e40af; }
+.fw-2 { background: #fef7f0; border-color: #f59e0b; } .fw-2 h4 { color: #92400e; }
+.fw-3 { background: #f0fdf4; border-color: #22c55e; } .fw-3 h4 { color: #166534; }
+.fw-4 { background: #fdf2f8; border-color: #ec4899; } .fw-4 h4 { color: #9d174d; }
+.fw-5 { background: #f5f3ff; border-color: #8b5cf6; } .fw-5 h4 { color: #5b21b6; }
+.fw-6 { background: #fffbeb; border-color: #eab308; } .fw-6 h4 { color: #854d0e; }
+.fw-7 { background: #fef2f2; border-color: #ef4444; } .fw-7 h4 { color: #991b1b; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.75rem; background: #f5f4f0; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf9f6; }
+.num { font-family: var(--mono); font-size: 0.8rem; }
+.best { font-weight: 600; color: var(--accent); }
+details { margin-bottom: 0.5rem; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius); }
+details summary:hover { background: #f5f4f0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.callout { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.75rem; font-size: 0.85rem; line-height: 1.6; }
+.callout-insight { background: var(--accent-bg); border: 1px solid var(--accent-border); }
+.callout-caution { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+.callout-label { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; display: block; }
+.callout-insight .callout-label { color: var(--accent); }
+.callout-caution .callout-label { color: var(--warn); }
+.cmp { display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.25rem; font-size: 0.82rem; }
+.cmp-label { font-weight: 500; min-width: 100px; flex-shrink: 0; }
+.cmp-val { color: var(--muted); }
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+/* Emphasis for key terms and values */
+.card strong, .fw-cell strong, .cmp-val strong { color: var(--text); font-weight: 600; }
+.key-value { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+
+/* Formula blocks */
+.formula-card { background: #f8f7f4; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+.formula-card .formula-id { font-family: var(--mono); font-size: 0.75rem; color: var(--blue); font-weight: 600; }
+.formula-card .formula-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.25rem; }
+.formula-card .formula-latex { font-size: 1rem; margin: 0.5rem 0; }
+
+/* Figure cards */
+.figure-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; margin-bottom: 0.5rem; }
+.figure-card img { max-width: 100%; border-radius: 4px; margin-bottom: 0.5rem; }
+.figure-card .fig-caption { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+.figure-card .fig-id { font-weight: 600; font-size: 0.82rem; margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="paper-header">
+  <h1>{{ metadata.title }}</h1>
+  <div class="meta-row">
+    {% if metadata.venue %}
+    <span class="badge badge-venue">{{ metadata.venue }}</span>
+    {% endif %}
+    <span class="badge badge-year">{{ metadata.year }}</span>
+    <span class="badge badge-level">Level {{ extraction_level }} Review</span>
+  </div>
+  <div class="authors">
+    {% for author in metadata.authors %}
+    {% if highlight_authors and author.split(' ')[-1] in highlight_authors %}
+    <strong>{{ author }}</strong>{% if not loop.last %}, {% endif %}
+    {% else %}
+    {{ author }}{% if not loop.last %}, {% endif %}
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% if metadata.affiliations %}
+  <div class="institution">{{ metadata.affiliations | join(', ') }}</div>
+  {% endif %}
+  <div class="links">
+    {% if metadata.arxiv_id %}
+    <a href="https://arxiv.org/abs/{{ metadata.arxiv_id }}">arXiv</a>
+    <a href="https://arxiv.org/pdf/{{ metadata.arxiv_id }}.pdf">PDF</a>
+    {% endif %}
+    {% if metadata.code_url %}
+    <a href="{{ metadata.code_url }}">Code</a>
+    {% endif %}
+    {% if metadata.doi %}
+    <a href="{{ metadata.doi }}">DOI</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- CORE CONTRIBUTION -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">S</span> Core Contribution</div>
+  <div class="card">
+    <p style="font-size:0.9rem">{{ method.core_contribution | safe }}
+      {% if method.core_contribution_source %}
+      <span class="src">{{ method.core_contribution_source }}</span>
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+<!-- FRAMEWORK MAPPING (Level 2 only) -->
+{% if extraction_level == 2 and method.framework_mapping and framework_layers %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Mapping to {{ framework_name }}</div>
+  <div class="framework-grid">
+    {% for layer in framework_layers %}
+    {% set layer_key = layer | lower | replace(' ', '_') | replace('/', '_') %}
+    {% set mapping = method.framework_mapping.get(layer_key, method.framework_mapping.get(layer, {})) %}
+    <div class="fw-cell fw-{{ loop.index }}">
+      <h4>{{ loop.index }}. {{ layer }}</h4>
+      {% if mapping %}
+      <p>{{ mapping.get('detail', mapping.get('choice', 'N/A')) | safe }}
+        {% if mapping.get('source') %}
+        <span class="src">{{ mapping.source }}</span>
+        {% else %}
+        <span class="src src-missing">not_found</span>
+        {% endif %}
+      </p>
+      {% else %}
+      <p><span class="src src-missing">not_found</span></p>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- METHOD COMPONENTS -->
+{% if method.method_components %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#2d5a27">M</span> Method Components</div>
+  <div class="card">
+    {% for comp in method.method_components %}
+    <details{% if loop.first %} open{% endif %}>
+      <summary>{{ comp.name }}</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">{{ comp.description | safe }}
+        {% if comp.source %}
+        <span class="src">{{ comp.source }}</span>
+        {% endif %}
+      </p>
+    </details>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- THEORETICAL RESULTS -->
+{% if method.theoretical_results %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">T</span> Theoretical Results</div>
+  <div class="card">
+    {% for res in method.theoretical_results %}
+    <div class="cmp">
+      <span class="cmp-label">{{ res.type | default('Result') | title }}</span>
+      <span class="cmp-val">{{ res.claim | safe }}
+        {% if res.source %}
+        <span class="src">{{ res.source }}</span>
+        {% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- KEY FORMULAS -->
+{% if method.key_formulas %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">Q</span> Key Formulas</div>
+  {% for f in method.key_formulas %}
+  <div class="formula-card">
+    <span class="formula-id">{{ f.formula_id }}</span>
+    {% if f.source %}
+    <span class="src">{{ f.source }}</span>
+    {% endif %}
+    {% if f.latex %}
+    <div class="formula-latex">\[{{ f.latex }}\]</div>
+    {% endif %}
+    {% if f.description %}
+    <div class="formula-desc">{{ f.description }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- KEY FIGURES -->
+{% if experiments.key_figures %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">G</span> Key Figures</div>
+  {% for fig in experiments.key_figures %}
+  <div class="figure-card">
+    <div class="fig-id">{{ fig.figure_id }}
+      {% if fig.source %}
+      <span class="src">{{ fig.source }}</span>
+      {% endif %}
+    </div>
+    {% if fig.url %}
+    <img src="{{ fig.url }}" alt="{{ fig.figure_id }}" loading="lazy">
+    {% endif %}
+    {% if fig.caption %}
+    <div class="fig-caption"><strong>Caption:</strong> {{ fig.caption }}</div>
+    {% endif %}
+    {% if fig.description %}
+    <div class="fig-caption" style="margin-top:0.25rem">{{ fig.description }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- KEY TABLES -->
+{% if experiments.key_tables %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">B</span> Key Tables</div>
+  {% for tbl in experiments.key_tables %}
+  <div class="card">
+    <div class="card-title">{{ tbl.table_id }}
+      {% if tbl.source %}
+      <span class="src">{{ tbl.source }}</span>
+      {% endif %}
+    </div>
+    {% if tbl.caption %}
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">{{ tbl.caption }}</p>
+    {% endif %}
+    {% if tbl.description %}
+    <p style="font-size:0.85rem">{{ tbl.description }}</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- EXPERIMENTAL SETUP -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">E</span> Experimental Setup</div>
+
+  {% if experiments.datasets %}
+  <div class="card">
+    <div class="card-title">Datasets ({{ experiments.datasets | length }})</div>
+    <table>
+      <tr><th>Dataset</th><th>Domain</th><th>Size</th><th>Source</th></tr>
+      {% for ds in experiments.datasets %}
+      <tr>
+        <td>{{ ds.name }}</td>
+        <td>{{ ds.domain | default('—') }}</td>
+        <td class="num">{{ ds.size | default('—') }}</td>
+        <td><span class="src">{{ ds.source }}</span></td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endif %}
+
+  {% if experiments.baselines %}
+  <div class="card">
+    <div class="card-title">Baselines ({{ experiments.baselines | length }})</div>
+    {% for bl in experiments.baselines %}
+    <div class="cmp">
+      <span class="cmp-label">{{ bl.name }}</span>
+      <span class="cmp-val">{{ bl.description | default('') }} <span class="src">{{ bl.source }}</span></span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if experiments.key_results %}
+  <div class="card">
+    <div class="card-title">Key Results</div>
+    <table>
+      <tr><th>Description</th><th>Metric</th><th>Value</th><th>Source</th></tr>
+      {% for kr in experiments.key_results %}
+      <tr>
+        <td>{{ kr.description | safe }}</td>
+        <td>{{ kr.metric | default('—') }}</td>
+        <td class="num {% if kr.comparison and 'best' in (kr.comparison | lower) %}best{% endif %}">{{ kr.value | default('—') }}</td>
+        <td><span class="src">{{ kr.source }}</span></td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endif %}
+
+  {% if experiments.metrics %}
+  <div class="card">
+    <div class="card-title">Metrics</div>
+    {% for m in experiments.metrics %}
+    <div class="cmp">
+      <span class="cmp-label">{{ m.name }}</span>
+      <span class="cmp-val">{{ m.definition | default('') }} <span class="src">{{ m.source }}</span></span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if experiments.settings %}
+  <div class="card">
+    <div class="card-title">Experimental Settings</div>
+    {% if experiments.settings.oracle_model %}
+    <div class="cmp"><span class="cmp-label">Oracle Model</span><span class="cmp-val">{{ experiments.settings.oracle_model }}</span></div>
+    {% endif %}
+    {% if experiments.settings.proxy_models %}
+    <div class="cmp"><span class="cmp-label">Proxy Models</span><span class="cmp-val">{{ experiments.settings.proxy_models | join(', ') }}</span></div>
+    {% endif %}
+    {% if experiments.settings.hardware %}
+    <div class="cmp"><span class="cmp-label">Hardware</span><span class="cmp-val">{{ experiments.settings.hardware }}</span></div>
+    {% endif %}
+    {% if experiments.settings.accuracy_target %}
+    <div class="cmp"><span class="cmp-label">Accuracy Target</span><span class="cmp-val">{{ experiments.settings.accuracy_target }}</span></div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- ANALYSIS (Level 2 only) -->
+{% if extraction_level == 2 and analysis %}
+
+  {% if analysis.assumptions %}
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions</div>
+    <div class="card">
+      {% for a in analysis.assumptions %}
+      <div class="cmp">
+        <span class="cmp-label">{{ 'Explicit' if a.explicit else 'Implicit' }}</span>
+        <span class="cmp-val">{{ a.assumption | safe }}
+          {% if a.source %}
+          <span class="src">{{ a.source }}</span>
+          {% else %}
+          <span class="src src-missing">not_found</span>
+          {% endif %}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if analysis.limitations %}
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations</div>
+    <div class="card">
+      {% for l in analysis.limitations %}
+      <div class="cmp">
+        <span class="cmp-label">{{ 'Author-stated' if l.stated_by_authors else 'Inferred' }}</span>
+        <span class="cmp-val">{{ l.limitation | safe }}
+          {% if l.source %}
+          <span class="src">{{ l.source }}</span>
+          {% else %}
+          <span class="src src-missing">not_found</span>
+          {% endif %}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if analysis.anchor_cross_references %}
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#4a2d7a">X</span> Cross-Reference with Anchor Papers</div>
+    <div class="card">
+      <table>
+        <tr><th>Anchor Paper</th><th>Relationship</th><th>Detail</th><th>Source</th></tr>
+        {% for ref in analysis.anchor_cross_references %}
+        <tr>
+          <td>{{ ref.anchor_paper }}</td>
+          <td>{{ ref.relationship | replace('_', ' ') | title }}</td>
+          <td>{{ ref.detail }}</td>
+          <td><span class="src">{{ ref.source }}</span></td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+{% endif %}
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Deep Paper Review — Research Paper Toolkit v0.1</p>
+  <p>Extraction date: {{ extraction_date }} | Level {{ extraction_level }} | <span class="src">source tags</span> indicate extraction provenance</p>
+  <p style="margin-top:0.5rem"><span class="src src-missing">orange tags</span> = information not found, needs verification</p>
+</div>
+
+</div>
+</body>
+</html>
