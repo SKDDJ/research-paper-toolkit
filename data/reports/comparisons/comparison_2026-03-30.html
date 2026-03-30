@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Paper Comparison — Dr. Lan&#39;s 7-Layer Semantic Filter Framework</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --border: #e8e6e1; --text: #1a1a1a;
+  --muted: #6b6860; --accent: #2d5a27; --accent-bg: #eef4ed; --accent-border: #c2d9bf;
+  --warn: #8b5e00; --warn-bg: #fef7ec; --warn-border: #f0d9a0;
+  --danger: #8b1a1a; --danger-bg: #fdf0f0;
+  --blue: #1a4f8b; --blue-bg: #edf3fb; --blue-border: #b8d0eb;
+  --purple: #4a2d7a; --purple-bg: #f3eff8;
+  --radius: 6px; --font: 'DM Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif; --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; margin-bottom: 0.5rem; }
+.subtitle { font-size: 0.9rem; color: var(--muted); margin-bottom: 1.5rem; }
+.section { margin-bottom: 2rem; }
+.section-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.section-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: white; flex-shrink: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.6rem; background: #f5f4f0; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf9f6; }
+.check { color: var(--accent); font-weight: 600; text-align: center; }
+.miss { color: #ccc; text-align: center; }
+.badge { display: inline-flex; padding: 2px 8px; border-radius: 99px; font-size: 0.7rem; font-weight: 500; }
+.badge-high { background: var(--danger-bg); color: var(--danger); border: 1px solid #e8c0c0; }
+.badge-medium { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-border); }
+.badge-low { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-info { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+
+/* Framework overlay */
+.fw-overlay { display: grid; gap: 0.5rem; }
+.fw-row { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; border-left: 3px solid var(--blue); }
+.fw-row.sparse { border-left-color: var(--danger); background: #fefafa; }
+.fw-row-header { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+.fw-row-coverage { font-size: 0.7rem; font-family: var(--mono); }
+.fw-papers { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+.fw-paper { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.fw-paper strong { color: var(--text); font-weight: 500; }
+.fw-paper.no-data { color: #ccc; font-style: italic; }
+
+/* Gap cards */
+.gap-card { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.5rem; border-left: 3px solid; }
+.gap-card.high { background: var(--danger-bg); border-color: var(--danger); }
+.gap-card.medium { background: var(--warn-bg); border-color: var(--warn); }
+.gap-card.low { background: var(--blue-bg); border-color: var(--blue); }
+.gap-card.info { background: var(--accent-bg); border-color: var(--accent); }
+.gap-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
+.gap-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius); }
+details summary:hover { background: #f5f4f0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.overflow-x { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Cross-Paper Comparison</h1>
+<p class="subtitle">7 papers compared | 2026-03-30 | Framework: Dr. Lan&#39;s 7-Layer Semantic Filter Framework</p>
+
+<!-- PAPER OVERVIEW -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">P</span> Paper Overview</div>
+  <div class="overflow-x">
+  <table>
+    <tr><th>ID</th><th>Title</th><th>Venue</th><th>Year</th><th>Summary</th></tr>
+    <tr>
+      <td style="font-family:var(--mono); font-weight:600; white-space:nowrap">bargain</td>
+      <td><a href="https://arxiv.org/abs/2509.02896" style="color:var(--blue); text-decoration:none">None</a></td>
+      <td style="white-space:nowrap">None</td>
+      <td>None</td>
+      <td style="font-size:0.78rem; color:var(--muted)">Paper text unavailable due to fatal HTML conversion error; no content could be extracted.</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono); font-weight:600; white-space:nowrap">thriftllm</td>
+      <td><a href="https://arxiv.org/abs/2501.04901" style="color:var(--blue); text-decoration:none">ThriftLLM: On Cost-Effective Selection of Large Language Models for Classification Queries</a></td>
+      <td style="white-space:nowrap">arXiv preprint</td>
+      <td>2025</td>
+      <td style="font-size:0.78rem; color:var(--muted)">Selects a budget-constrained LLM ensemble for classification via a submodular surrogate objective with instance-dependent approximation guarantees.</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono); font-weight:600; white-space:nowrap">nirvana</td>
+      <td><a href="https://arxiv.org/abs/2511.19830" style="color:var(--blue); text-decoration:none">Beyond Relational: Semantic-Aware Multi-Modal Analytics with LLM-Native Query Optimization</a></td>
+      <td style="white-space:nowrap">arXiv preprint</td>
+      <td>2025</td>
+      <td style="font-size:0.78rem; color:var(--muted)">Nirvana: multi-modal analytics framework with agentic logical optimizer (random-walk plan search) and physical optimizer (improvement-score model selection) for LLM-driven semantic queries.</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono); font-weight:600; white-space:nowrap">lotus</td>
+      <td><a href="https://arxiv.org/abs/2407.11418" style="color:var(--blue); text-decoration:none">LOTUS: Enabling Semantic Queries with LLMs Over Tables of Unstructured and Structured Data</a></td>
+      <td style="white-space:nowrap">arXiv preprint</td>
+      <td>2024</td>
+      <td style="font-size:0.78rem; color:var(--muted)">Introduces semantic operators extending the relational model with composable AI-based operations and implements them in LOTUS, an optimized query engine.</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono); font-weight:600; white-space:nowrap">csv</td>
+      <td><a href="https://arxiv.org/abs/2603.04799" style="color:var(--blue); text-decoration:none">Beyond Linear LLM Invocation: An Efficient and Effective Semantic Filter Paradigm</a></td>
+      <td style="white-space:nowrap">arXiv preprint</td>
+      <td>2026</td>
+      <td style="font-size:0.78rem; color:var(--muted)">CSV framework reduces semantic filter LLM invocations to sublinear complexity via clustering, sampling, and voting with error guarantees.</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono); font-weight:600; white-space:nowrap">task_cascades</td>
+      <td><a href="https://arxiv.org/abs/2601.05536" style="color:var(--blue); text-decoration:none">Task Cascades for Efficient Unstructured Data Processing</a></td>
+      <td style="white-space:nowrap">PACMMOD (SIGMOD)</td>
+      <td>2026</td>
+      <td style="font-size:0.78rem; color:var(--muted)">Task cascades generalize model cascades by varying the operation, document fraction, and model at each stage, reducing LLM inference cost by ~48.5% vs model cascades.</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono); font-weight:600; white-space:nowrap">scaledoc</td>
+      <td><a href="https://arxiv.org/abs/2509.12610" style="color:var(--blue); text-decoration:none">ScaleDoc: Scaling LLM-based Predicates over Large Document Collections</a></td>
+      <td style="white-space:nowrap">PVLDB</td>
+      <td>2025</td>
+      <td style="font-size:0.78rem; color:var(--muted)">ScaleDoc decouples LLM predicate execution into offline embedding and online contrastive-learning proxy with adaptive cascade, achieving 2x speedup and 85% LLM call reduction.</td>
+    </tr>
+  </table>
+  </div>
+</div>
+
+<!-- RESEARCH GAPS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">!</span> Research Gaps & Opportunities</div>
+  <div class="gap-card low">
+    <div class="gap-title">Unique evaluation datasets (no cross-paper comparison possible) <span class="badge badge-low">low</span></div>
+    <div class="gap-desc">24 datasets are used by only one paper: Overruling (thriftllm), SciQ (thriftllm), Hellaswag (thriftllm), Banking77 (thriftllm), WDC Products (thriftllm)</div>
+  </div>
+  <div class="gap-card medium">
+    <div class="gap-title">Implicit assumptions across papers <span class="badge badge-medium">medium</span></div>
+    <div class="gap-desc">3 implicit assumptions found that authors don't explicitly state. These represent potential research blind spots worth investigating.</div>
+  </div>
+</div>
+
+<!-- FRAMEWORK OVERLAY -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Framework Mapping Overlay — Dr. Lan&#39;s 7-Layer Semantic Filter Framework</div>
+  <div class="fw-overlay">
+    <div class="fw-row ">
+      <div class="fw-row-header">
+        <span>1. Data Representation Layer</span>
+        <span class="fw-row-coverage">7/7 papers</span>
+      </div>
+      <div class="fw-papers">
+        <div class="fw-paper"><strong>bargain:</strong> Unable to determine; paper content not available due to conversion failure.</div>
+        <div class="fw-paper"><strong>thriftllm:</strong> Queries are represented as text with prompts. For success probability estimation, queries are converted to <strong>embeddings</strong> via OpenAI's embedding API and clustered using <strong>DBSCAN</strong>. Historical performance is stored in a <strong>boolean matrix T ∈ {0,1}^{N×L}</strong> recording correctness of each LLM on each query.</div>
+        <div class="fw-paper"><strong>nirvana:</strong> <strong>Nirvana</strong> supports tables with both structured fields (numerical, dates) and unstructured fields (text, documents, images, audio). Unstructured fields are stored as file paths pointing to remote locations (URLs, S3). Semantic operators process these multi-modal fields via LLM inference. The data model is a generalization of relational tables to accommodate heterogeneous content.</div>
+        <div class="fw-paper"><strong>lotus:</strong> LOTUS extends the relational model with tables containing both structured data columns and <strong>unstructured free-form natural-language text</strong> columns. Semantic similarity indices (embeddings via FAISS) can be created over text columns to enable efficient semantic query processing. The data model uses a <strong>Pandas DataFrame</strong> representation.</div>
+        <div class="fw-paper"><strong>csv:</strong> Tuples from the table are embedded into a <strong>semantic space</strong> to enable clustering. The representation captures semantic similarity between tuples with respect to the natural language predicate.</div>
+        <div class="fw-paper"><strong>task_cascades:</strong> Documents are segmented into fixed-granularity chunks, each scored by a <strong>lightweight logistic regression classifier</strong> trained on oracle-labeled relevance data using <strong>text-embedding-3-small</strong> embeddings. Chunks are reordered so the most relevant content appears first, enabling efficient <strong>prefix-based fractional processing</strong> at fractions f ∈ {0.1, 0.25, 0.5, 1.0}.</div>
+        <div class="fw-paper"><strong>scaledoc:</strong> <strong>ScaleDoc</strong> uses <strong>NvEmbed</strong> (derived from Mistral-7B) to generate dense semantic embeddings for each document in a one-time offline phase. These embeddings capture rich contextual semantics and are stored for reuse across all ad-hoc queries, eliminating redundant per-query document processing.</div>
+      </div>
+    </div>
+    <div class="fw-row ">
+      <div class="fw-row-header">
+        <span>2. Candidate Executor / Proxy Layer</span>
+        <span class="fw-row-coverage">7/7 papers</span>
+      </div>
+      <div class="fw-papers">
+        <div class="fw-paper"><strong>bargain:</strong> Unable to determine; paper content not available due to conversion failure.</div>
+        <div class="fw-paper"><strong>thriftllm:</strong> <strong>12 commercial LLM APIs</strong> from 5 companies (OpenAI, Google, Microsoft, Meta, Mistral AI) serve as candidate executors with varying costs ($0.055 to $15.0 per million tokens). No traditional proxy models; instead, the method selects a <strong>subset (ensemble)</strong> of these LLMs. The <strong>surrogate function γ(S)</strong> acts as a proxy for the intractable prediction accuracy ξ(S).</div>
+        <div class="fw-paper"><strong>nirvana:</strong> The system uses a pool of models ordered by capability and cost: <strong>gpt-4.1-nano</strong> (cheapest/weakest), <strong>gpt-4o-mini</strong>, <strong>gpt-4.1-mini</strong>, <strong>gpt-4.1</strong> (most expensive/strongest). The physical optimizer selects per-operator backends. Additionally, the logical optimizer can replace LLM operators entirely with <strong>non-LLM compute functions</strong> (UDFs), bypassing LLM inference altogether.</div>
+        <div class="fw-paper"><strong>lotus:</strong> LOTUS supports configuring multiple LMs (e.g., <strong>TinyLlama/Llama-8B as proxy</strong>, <strong>Llama-70B/GPT-4o as oracle</strong>) for model cascades. Embedding models (e.g., <strong>E5Model</strong>, <strong>ColBERT</strong>) serve as lightweight retrieval proxies for similarity-based operations. Cross-encoder re-rankers (e.g., <strong>MixedBread</strong>) provide intermediate-cost executors.</div>
+        <div class="fw-paper"><strong>csv:</strong> An <strong>embedding model</strong> serves as the proxy to compute semantic representations and cluster tuples, while the <strong>LLM</strong> serves as the oracle executor invoked only on sampled tuples. This creates a two-tier system where the embedding-based clustering acts as a lightweight proxy to reduce expensive LLM calls.</div>
+        <div class="fw-paper"><strong>task_cascades:</strong> The framework uses a <strong>cheap proxy model</strong> (GPT-4o-mini, ~17× cheaper) and an <strong>expensive oracle</strong> (GPT-4o). Both models are used to execute candidate tasks at various document fractions. The framework generalizes to any number of models but experiments focus on the two-model setting. An <strong>LLM agent</strong> (o1-mini) is used separately for surrogate operation generation.</div>
+        <div class="fw-paper"><strong>scaledoc:</strong> The <strong>proxy</strong> is a <strong>query-specific 3-layer MLP</strong> trained online via contrastive learning on pre-computed embeddings. It produces cosine similarity decision scores. The <strong>oracle</strong> is <strong>GPT-4o</strong> accessed via API. The proxy is extremely lightweight compared to LLM cascade proxies (Llama-1B/3B), enabling fast training and inference.</div>
+      </div>
+    </div>
+    <div class="fw-row ">
+      <div class="fw-row-header">
+        <span>3. Unit of Decision Layer</span>
+        <span class="fw-row-coverage">7/7 papers</span>
+      </div>
+      <div class="fw-papers">
+        <div class="fw-paper"><strong>bargain:</strong> Unable to determine; paper content not available due to conversion failure.</div>
+        <div class="fw-paper"><strong>thriftllm:</strong> The ensemble selection is performed <strong>per query class</strong> (cluster of semantically similar queries). At inference time, <strong>adaptive selection</strong> operates <strong>per query</strong>, pruning unnecessary LLM invocations based on real-time observations. The budget constraint is enforced <strong>strictly per query</strong>, unlike FrugalGPT's expected-cost approach.</div>
+        <div class="fw-paper"><strong>nirvana:</strong> The physical optimizer makes model selection decisions at the <strong>per-operator granularity</strong> — each semantic operator in a logical plan is independently assigned its most cost-effective backend model. This is enabled by the <strong>Operator Independence Hypothesis</strong> (Hypothesis 1). The logical optimizer operates at the <strong>per-plan level</strong>, evaluating and comparing entire logical plans.</div>
+        <div class="fw-paper"><strong>lotus:</strong> The unit of decision varies by operator: <strong>sem_filter</strong> and <strong>sem_map</strong> operate per-row; <strong>sem_join</strong> evaluates per-pair of rows; <strong>sem_topk</strong> performs pairwise comparisons between document pairs; <strong>sem_agg</strong> reasons over groups of rows. Each operator defines its own granularity of LM invocation.</div>
+        <div class="fw-paper"><strong>csv:</strong> Rather than making decisions <strong>tuple-by-tuple</strong> (as in standard semantic filtering), CSV makes decisions at the <strong>cluster level</strong>, inferring labels for all tuples in a cluster based on sampled evaluations. This is the key insight enabling sublinear invocations.</div>
+        <div class="fw-paper"><strong>task_cascades:</strong> Each document is the unit of decision. At each cascade stage, the system processes a <strong>fraction fᵢ of the document</strong> (the top-fᵢ most relevant content after restructuring). The decision to accept or escalate is made per-document based on the model's <strong>class-specific confidence threshold</strong> τᵢᶜ.</div>
+        <div class="fw-paper"><strong>scaledoc:</strong> Each document is independently assigned a decision score indicating likelihood of satisfying the boolean semantic predicate. The cascade then classifies each document individually as positive, negative, or ambiguous based on threshold comparison.</div>
+      </div>
+    </div>
+    <div class="fw-row ">
+      <div class="fw-row-header">
+        <span>4. Predicate Transformation Layer</span>
+        <span class="fw-row-coverage">7/7 papers</span>
+      </div>
+      <div class="fw-papers">
+        <div class="fw-paper"><strong>bargain:</strong> Unable to determine; paper content not available due to conversion failure.</div>
+        <div class="fw-paper"><strong>thriftllm:</strong> Rather than using a single LLM's response, ThriftLLM <strong>aggregates responses</strong> from multiple LLMs via a <strong>maximum-likelihood framework</strong>. The <strong>belief function</strong> h(C_k | ϕ_S) efficiently determines which class has the highest likelihood without computing exact likelihoods. This transforms the multi-model classification into a single aggregated prediction.</div>
+        <div class="fw-paper"><strong>nirvana:</strong> The <strong>agentic logical optimizer</strong> transforms predicates/instructions through three rules: (1) <strong>Filter pushdown</strong> reorders operators to prune data early; (2) <strong>Operator fusion</strong> merges multiple operators into one with a combined NL predicate, reducing LLM calls; (3) <strong>Non-LLM replacement</strong> converts NL instructions into equivalent compute functions (e.g., 'Score > 8.5' becomes a comparison UDF). These transformations are expressed in natural language and applied by an LLM rewriter.</div>
+        <div class="fw-paper"><strong>lotus:</strong> User-specified <strong>langex</strong> expressions are automatically wrapped in <strong>operator-specific instruction prompts</strong> managed by the system (e.g., the filter prompt instructs the model to output 'True' or 'False'). The system handles prompt construction transparently and can leverage <strong>prompt optimization techniques</strong> (e.g., DSPy). Demonstrations can be optionally provided.</div>
+        <div class="fw-paper"><strong>csv:</strong> The natural language predicate <strong>e</strong> is used directly in prompts for sampled tuples. The transformation is implicit: the predicate's semantics are captured through the <strong>embedding space</strong> used for clustering, but the predicate itself is not decomposed or rewritten.</div>
+        <div class="fw-paper"><strong>task_cascades:</strong> The original operation is transformed into multiple <strong>surrogate operations</strong>—simpler, decomposed, or related operations whose output classes are a subset of the original. An <strong>agentic loop</strong> using o1-mini iteratively proposes surrogates informed by <strong>failure cases</strong> and <strong>hard examples</strong> from the current cascade. Examples include prerequisite checks (e.g., 'does the opinion mention a lower court?') and pattern-based heuristics. This is a key novel contribution beyond standard model cascades.</div>
+        <div class="fw-paper"><strong>scaledoc:</strong> The natural language predicate is not decomposed but rather encoded alongside documents into a shared latent space via the <strong>contrastive learning framework</strong>. The predicate is transformed into a query embedding that serves as an anchor. Decision scores are cosine similarities in the learned space, designed to satisfy <strong>smoothness</strong>, <strong>semantic monotonicity</strong>, and <strong>bipolarity</strong> properties.</div>
+      </div>
+    </div>
+    <div class="fw-row ">
+      <div class="fw-row-header">
+        <span>5. Calibration / Sampling Layer</span>
+        <span class="fw-row-coverage">7/7 papers</span>
+      </div>
+      <div class="fw-papers">
+        <div class="fw-paper"><strong>bargain:</strong> Unable to determine; paper content not available due to conversion failure.</div>
+        <div class="fw-paper"><strong>thriftllm:</strong> <strong>θ Monte Carlo simulations</strong> estimate prediction accuracy ξ(·) with parameters ε=0.1, δ=0.01. Success probabilities are estimated from historical data via <strong>DBSCAN clustering</strong> of query embeddings. When probabilities have <strong>confidence intervals</strong>, a <strong>median-of-means</strong> procedure (Lemma 10) diminishes failure probability to desired levels.</div>
+        <div class="fw-paper"><strong>nirvana:</strong> Both the logical and physical optimizers use <strong>data samples</strong> (5% ratio) for evaluation. The logical optimizer executes candidate plans on samples and uses <strong>LLM-as-a-Judge</strong> to rate semantic equivalence. The physical optimizer computes <strong>improvement scores</strong> on sampled data to estimate model cost-effectiveness. Default constant selectivity assumptions (filter=0.5, reduce=0, others=1) are used for cost estimation, with plans for future semantic cardinality estimation.</div>
+        <div class="fw-paper"><strong>lotus:</strong> For model cascades in <strong>sem_filter</strong> and <strong>sem_topk</strong>, LOTUS computes confidence scores by <strong>exponentiating the log-probabilities</strong> of the output tokens corresponding to True/False labels. A user-defined <strong>confidence threshold</strong> determines which records are routed to the oracle model. This is a lightweight, operator-semantics-aware scoring function.</div>
+        <div class="fw-paper"><strong>csv:</strong> CSV <strong>samples a small subset</strong> from each semantic cluster for LLM evaluation. When clusters are <strong>ambiguous</strong> (mixed positive/negative), re-clustering is triggered to refine the groupings. This adaptive sampling strategy ensures that the sample is representative of cluster-level semantics.</div>
+        <div class="fw-paper"><strong>task_cascades:</strong> Confidence scores are derived from <strong>LLM token-level log-probabilities</strong> transformed into class distributions p_m(c|x_f, o). Thresholds are first set per-task on the development set to achieve per-class accuracy ≥ α (Algorithm 2). A subsequent <strong>threshold adjustment</strong> procedure (Algorithm 3) uses a held-out validation split with the <strong>Waudby-Smith and Ramdas (2024)</strong> estimator to provide statistical guarantees. The development set is split into training (for cascade construction) and validation (for threshold adjustment), each with at least 75 documents.</div>
+        <div class="fw-paper"><strong>scaledoc:</strong> <strong>ScaleDoc</strong> samples ~5% of documents via <strong>stratified sampling</strong> across score bins, labels them with the oracle, then reconstructs global positive/negative score distributions using <strong>jittering</strong> (for information recovery), <strong>linear interpolation density estimation</strong>, and <strong>moving average smoothing</strong>. This calibration enables accurate accuracy estimation for any threshold pair from a small sample.</div>
+      </div>
+    </div>
+    <div class="fw-row ">
+      <div class="fw-row-header">
+        <span>6. Routing / Action Layer</span>
+        <span class="fw-row-coverage">7/7 papers</span>
+      </div>
+      <div class="fw-papers">
+        <div class="fw-paper"><strong>bargain:</strong> Unable to determine; paper content not available due to conversion failure.</div>
+        <div class="fw-paper"><strong>thriftllm:</strong> <strong>SurGreedyLLM</strong> selects the best ensemble among three candidates: greedy on ξ(·), greedy on surrogate γ(·), and the single best LLM. At query time, <strong>ThriftLLM's adaptive selection</strong> applies models sequentially and terminates early when the <strong>termination condition</strong> F(T*)·H_2(ϕ_S) ≤ H_1(ϕ_S) guarantees the prediction won't change, routing the query to fewer LLMs than the full ensemble.</div>
+        <div class="fw-paper"><strong>nirvana:</strong> The physical optimizer uses a <strong>greedy algorithm</strong> (Algorithm 2) that iterates through models in order of increasing capability. For each operator, it computes the <strong>improvement score</strong> and selects the model if the marginal improvement exceeds threshold $\Delta I_{min}$ (set to 20%). The logical optimizer uses <strong>random walk search</strong> with a mixture sampling distribution to route between plan exploration and exploitation. Concurrent execution with up to 16 coroutines is used for throughput.</div>
+        <div class="fw-paper"><strong>lotus:</strong> Records with confidence below the threshold are <strong>routed from the proxy to the oracle LM</strong>. For joins, the system selects among <strong>nested-loop, map-search-filter, or search-filter</strong> algorithms based on table size and user-specified LM call budget. For topk, the system chooses among <strong>quickselect, heap, or quadratic</strong> algorithms. Semantic index optimizations are applied when correlation exists between embeddings and the ranking criteria.</div>
+        <div class="fw-paper"><strong>csv:</strong> After sampling, labels are propagated to unsampled tuples via <strong>UniVote</strong> (uniform majority voting) or <strong>SimVote</strong> (similarity-weighted voting). The routing decision is whether to accept the cluster-level vote or trigger <strong>re-clustering</strong> for ambiguous clusters.</div>
+        <div class="fw-paper"><strong>task_cascades:</strong> Documents flow through an <strong>ordered sequence of tasks</strong>. At each stage, if the model's confidence exceeds the class-specific threshold, the prediction is accepted and the cascade terminates for that document. Otherwise, the document is <strong>escalated</strong> to the next task. The final fallback is always the <strong>oracle task</strong> (full document, original operation, oracle model). Task ordering is determined by a <strong>greedy algorithm</strong> inspired by approximation algorithms for <strong>Minimum Sum Set Cover</strong>, which sequentially adds the task that most reduces total inference cost while satisfying per-task accuracy constraints.</div>
+        <div class="fw-paper"><strong>scaledoc:</strong> Documents with scores above upper threshold <strong>rb</strong> are classified positive; below lower threshold <strong>lb</strong> are classified negative; those in [lb, rb] are routed to the <strong>oracle LLM</strong>. Thresholds are selected via an efficient <strong>Pareto frontier traversal algorithm</strong> (Algorithm 2) that minimizes unfiltered rate subject to accuracy constraint, with linear complexity.</div>
+      </div>
+    </div>
+    <div class="fw-row ">
+      <div class="fw-row-header">
+        <span>7. Guarantee Layer</span>
+        <span class="fw-row-coverage">7/7 papers</span>
+      </div>
+      <div class="fw-papers">
+        <div class="fw-paper"><strong>bargain:</strong> Unable to determine; paper content not available due to conversion failure.</div>
+        <div class="fw-paper"><strong>thriftllm:</strong> ThriftLLM provides a <strong>data-dependent approximation guarantee</strong> (Theorem 8): with probability ≥ 1-δ, the solution achieves at least (ratio - ε)(1 - 1/√e) times the optimal prediction accuracy, where the ratio depends on the gap between ξ and γ on the selected sets. Extended to <strong>confidence interval estimates</strong> (Theorem 9) with failure probability δ + L²·Σδ_l. The budget constraint is <strong>strictly enforced per query</strong>.</div>
+        <div class="fw-paper"><strong>nirvana:</strong> <strong>Nirvana</strong> provides approximate quality guarantees through: (1) an <strong>error tolerance ε</strong> (set to 0.8) that filters out plans whose LLM-as-a-Judge similarity score falls below the threshold; (2) an <strong>improvement margin ΔI_min</strong> (20%) for physical optimization. These are soft, empirical guarantees rather than formal statistical bounds. The LLM-as-a-Judge achieves >80% success rate but can fail in ~10% of cases. No formal probabilistic guarantees (e.g., confidence intervals) are provided.</div>
+        <div class="fw-paper"><strong>lotus:</strong> LOTUS does not provide formal accuracy or recall guarantees. The system relies on <strong>empirical evaluation</strong> across applications to demonstrate quality. Approximate join algorithms trade off completeness for efficiency. The confidence threshold in cascades is user-specified without formal bounds on accuracy loss.</div>
+        <div class="fw-paper"><strong>csv:</strong> CSV provides <strong>error guarantees</strong> on the semantic filtering results, ensuring that the sublinear approximation maintains bounded error relative to full linear evaluation. The specific form of guarantees (probabilistic bounds, worst-case, etc.) is described in the full paper.</div>
+        <div class="fw-paper"><strong>task_cascades:</strong> The system provides a guarantee that Pr(Acc(π*) < α) ≤ δ, where δ is user-specified (default 0.25). This is achieved via <strong>threshold adjustment</strong> on a validation split using the <strong>Waudby-Smith and Ramdas (2024)</strong> concentration inequality, which leverages both sample mean and variance for tighter bounds than Hoeffding's inequality. The procedure accounts for multiple hypothesis tests within the adjustment loop. If no cascade meets the guarantee, the system falls back to oracle-only processing.</div>
+        <div class="fw-paper"><strong>scaledoc:</strong> Users specify an accuracy target α (e.g., 0.90). The system uses reconstructed score distributions to estimate accuracy for candidate thresholds. Empirical validation shows ScaleDoc meets α=0.90 in <strong>>80% of trials</strong> with worst-case accuracy loss of only 0.04. No formal statistical guarantee is provided; the guarantee is empirical via calibration.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DATASET COVERAGE -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#2d5a27">D</span> Dataset Coverage Matrix</div>
+  <div class="card overflow-x">
+    <table>
+      <tr>
+        <th>Dataset</th>
+        <th>Domain</th>
+        <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">bargain</th>
+        <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">thriftllm</th>
+        <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">nirvana</th>
+        <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">lotus</th>
+        <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">csv</th>
+        <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">task_cascades</th>
+        <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">scaledoc</th>
+      </tr>
+      <tr>
+        <td style="font-weight:500">AGNews</td>
+        <td style="color:var(--muted); font-size:0.78rem">News</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">FEVER</td>
+        <td style="color:var(--muted); font-size:0.78rem">Fact-checking</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">pubmed</td>
+        <td style="color:var(--muted); font-size:0.78rem">Biomedical</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="check">&#10003;</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Overruling</td>
+        <td style="color:var(--muted); font-size:0.78rem">Law</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">SciQ</td>
+        <td style="color:var(--muted); font-size:0.78rem">Science</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Hellaswag</td>
+        <td style="color:var(--muted); font-size:0.78rem">Commonsense</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Banking77</td>
+        <td style="color:var(--muted); font-size:0.78rem">Banking</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">WDC Products</td>
+        <td style="color:var(--muted); font-size:0.78rem">E-commerce (Entity Matching)</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Abt-Buy</td>
+        <td style="color:var(--muted); font-size:0.78rem">E-commerce (Entity Matching)</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Walmart-Amazon</td>
+        <td style="color:var(--muted); font-size:0.78rem">E-commerce (Entity Matching)</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Amazon-Google</td>
+        <td style="color:var(--muted); font-size:0.78rem">E-commerce (Entity Matching)</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">DBLP-Scholar</td>
+        <td style="color:var(--muted); font-size:0.78rem">Bibliographic (Entity Matching)</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Movie</td>
+        <td style="color:var(--muted); font-size:0.78rem">Entertainment/Movies</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Estate</td>
+        <td style="color:var(--muted); font-size:0.78rem">Real estate</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Game</td>
+        <td style="color:var(--muted); font-size:0.78rem">Video games</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">BioDEX</td>
+        <td style="color:var(--muted); font-size:0.78rem">Biomedical / Extreme multi-label classification</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">SciFact (BEIR)</td>
+        <td style="color:var(--muted); font-size:0.78rem">Scientific search and ranking</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">CIFAR-bench</td>
+        <td style="color:var(--muted); font-size:0.78rem">Search and ranking (paper abstracts)</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">HellaSwag-bench</td>
+        <td style="color:var(--muted); font-size:0.78rem">Search and ranking (synthetic paper abstracts)</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">Real-world datasets</td>
+        <td style="color:var(--muted); font-size:0.78rem">Various</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">court</td>
+        <td style="color:var(--muted); font-size:0.78rem">Legal</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">enron</td>
+        <td style="color:var(--muted); font-size:0.78rem">Email classification</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">games</td>
+        <td style="color:var(--muted); font-size:0.78rem">Game reviews</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">legal</td>
+        <td style="color:var(--muted); font-size:0.78rem">Legal contracts</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">wiki_talk</td>
+        <td style="color:var(--muted); font-size:0.78rem">Online discourse</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+        <td class="miss">—</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">BigPatent</td>
+        <td style="color:var(--muted); font-size:0.78rem">U.S. patent documents</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+      </tr>
+      <tr>
+        <td style="font-weight:500">GovReport</td>
+        <td style="color:var(--muted); font-size:0.78rem">Government reports</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="miss">—</td>
+        <td class="check">&#10003;</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- BASELINE COMPARISON -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">B</span> Baseline Usage</div>
+  <details open>
+    <summary>26 baselines across 7 papers</summary>
+    <div class="card overflow-x">
+      <table>
+        <tr>
+          <th>Baseline</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">bargain</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">thriftllm</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">nirvana</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">lotus</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">csv</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">task_cascades</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">scaledoc</th>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Oracle Only</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="check">&#10003;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">GreedyLLM</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">FrugalGPT</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">LLM-Blender</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">RoBERTa (fine-tuned)</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Ditto</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">GPT-4.1</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">TableRAG</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Table-LLaVA</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Palimpzest</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Lotus</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Smart</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">FacTool</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Semantic Similarity Join (retrieval baseline)</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Semantic Search</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Semantic Search + Reranker</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">D&#39;Oosterlinck et al. (2024) DSPy pipeline</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">State-of-the-art semantic filter approaches</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">2-Model Cascade</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">2-Model Cascade (+ Guarantees)</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">LOTUS (+ Guarantees)</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Probabilistic Predicates (PPs)</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">LLM Cascade (Llama-3.2-1B + Oracle)</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">LLM Cascade (Llama-3.2-3B + Oracle)</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">LLM Cascade (Llama-3.2-1B + Llama-3.2-3B + Oracle)</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">SUPG</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+        </tr>
+      </table>
+    </div>
+  </details>
+</div>
+
+<!-- METRIC COMPARISON -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">M</span> Metrics Used</div>
+  <details>
+    <summary>21 metrics across 7 papers</summary>
+    <div class="card overflow-x">
+      <table>
+        <tr>
+          <th>Metric</th>
+          <th>Definition</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">bargain</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">thriftllm</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">nirvana</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">lotus</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">csv</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">task_cascades</th>
+          <th style="text-align:center; font-family:var(--mono); font-size:0.72rem">scaledoc</th>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Accuracy</td>
+          <td style="color:var(--muted); font-size:0.78rem">Fraction of correctly classified queries; used for text classification tasks.</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="check">&#10003;</td>
+          <td class="check">&#10003;</td>
+          <td class="check">&#10003;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">F1 Score</td>
+          <td style="color:var(--muted); font-size:0.78rem">Harmonic mean of precision and recall; used for entity matching tasks.</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Cost</td>
+          <td style="color:var(--muted); font-size:0.78rem">Total LLM API usage cost per query in USD, based on input/output token pricing.</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Runtime (seconds)</td>
+          <td style="color:var(--muted); font-size:0.78rem">End-to-end execution time including optimization and query processing, measured in seconds.</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Monetary Cost (USD)</td>
+          <td style="color:var(--muted); font-size:0.78rem">Total API cost for LLM inference during optimization and execution, following official OpenAI pricing.</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Analytical Quality (% correct)</td>
+          <td style="color:var(--muted); font-size:0.78rem">Proportion of queries answered correctly, where ground truth is labeled manually. Evaluated on Large workload queries that produce single-value results.</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">LLM-as-a-Judge Reliability</td>
+          <td style="color:var(--muted); font-size:0.78rem">Measured via Success rate (TP+TN/total), Precision (TP/(TP+FP)), and Recall (TP/(TP+FN)) of the judge&#39;s rewrite verification.</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Execution Time</td>
+          <td style="color:var(--muted); font-size:0.78rem">Wall-clock time in seconds for query execution, reported both with and without batching for fact-checking</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">RP@5 (Rank-Precision@5)</td>
+          <td style="color:var(--muted); font-size:0.78rem">Rank-precision at 5 for extreme multi-label classification, following prior work</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">RP@10 (Rank-Precision@10)</td>
+          <td style="color:var(--muted); font-size:0.78rem">Rank-precision at 10 for extreme multi-label classification</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">nDCG@10</td>
+          <td style="color:var(--muted); font-size:0.78rem">Normalized Discounted Cumulative Gain at rank 10 for search and ranking evaluation</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500"># LM Calls</td>
+          <td style="color:var(--muted); font-size:0.78rem">Total number of language model invocations required by the algorithm</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Lines of Code (LoC)</td>
+          <td style="color:var(--muted); font-size:0.78rem">Estimated lines of code required to implement the pipeline</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Number of LLM calls</td>
+          <td style="color:var(--muted); font-size:0.78rem">Total number of LLM invocations required to process the entire table, measuring efficiency.</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Inference Cost</td>
+          <td style="color:var(--muted); font-size:0.78rem">Total cost in USD for processing all test documents through the cascade, computed using OpenAI API pricing ($2.50/1M input tokens for GPT-4o, $0.15/1M for GPT-4o-mini, 50% prefix cache discount).</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Cost Ratio</td>
+          <td style="color:var(--muted); font-size:0.78rem">Cost of the method relative to the corresponding 2-Model Cascade variant (plain or +G).</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Break-Even Documents</td>
+          <td style="color:var(--muted); font-size:0.78rem">Number of inference documents that must be processed before total cost (optimization + inference) becomes lower than Oracle Only.</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+          <td class="miss">—</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">End-to-end latency</td>
+          <td style="color:var(--muted); font-size:0.78rem">Total online processing time including training, calibration, proxy inference, and oracle invocations.</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Data reduction rate</td>
+          <td style="color:var(--muted); font-size:0.78rem">Percentage of documents that do not require the LLM oracle call, indicating cost-saving.</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Unfiltered rate</td>
+          <td style="color:var(--muted); font-size:0.78rem">Fraction of documents sent to the oracle LLM, u(lb,rb).</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+        </tr>
+        <tr>
+          <td style="font-weight:500">Jensen-Shannon Distance (JSD)</td>
+          <td style="color:var(--muted); font-size:0.78rem">Measures discrepancy between reconstructed score distribution and ground truth full distribution for density estimator validation.</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="miss">—</td>
+          <td class="check">&#10003;</td>
+        </tr>
+      </table>
+    </div>
+  </details>
+</div>
+
+<!-- ASSUMPTIONS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions Across Papers</div>
+  <details>
+    <summary>29 assumptions from 7 papers</summary>
+    <div class="card">
+      <table>
+        <tr><th>Paper</th><th>Type</th><th>Assumption</th></tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Responses of different LLMs are <strong>mutually independent</strong> given a query.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">When a model makes a wrong prediction, it predicts each of the K-1 wrong classes with <strong>equal probability</strong> (1-p_i)/(K-1).</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Queries from the same query class exhibit <strong>semantic similarity</strong> and share success probabilities.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">LLMs are <strong>deterministic</strong> (temperature set to lowest), so cost b_i(q) is solely determined by query q.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Focus is restricted to <strong>classification tasks</strong>; extension to regression is left as future work.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem"><strong>Operator Independence (Hypothesis 1)</strong>: Choosing a more capable model for one operator improves overall quality regardless of models assigned to other operators, enabling greedy per-operator model selection.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem"><strong>Model Capability Hypothesis (Hypothesis 2)</strong>: If a weaker model returns the correct answer, any stronger model also returns the correct answer. Used to eliminate expensive oracle invocations.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Default constant selectivity assumptions for operators: filter=0.5, reduce=0, others=1. The system does not currently perform semantic cardinality estimation.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">The output of the most powerful model (gpt-4.1) serves as a proxy for ground truth when computing improvement scores.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Small, bounded deviations from the oracle result are acceptable in exchange for cost/latency improvements (approximate query processing paradigm).</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Semantic aggregation langex specifies a commutative and associative aggregation function, enabling hierarchical reduce patterns</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">For semantic index-based pivot selection in topk, there exists correlation between the rankings imposed by the user's sorting criteria and semantic similarity scores</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Pairwise LM-based comparisons are effective and robust to input order sensitivity, following prior work</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">The search-filter join pattern produces high quality results under positive query correlation between semantic embeddings and the predicate</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td><span style="color:var(--warn)">Implicit</span></td>
+          <td style="font-size:0.82rem">Log-probabilities of True/False tokens provide reliable confidence scores for cascade routing</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">csv</td>
+          <td><span style="color:var(--warn)">Implicit</span></td>
+          <td style="font-size:0.82rem">Tuples that are semantically similar (in embedding space) are likely to have the same filter label with respect to the natural language predicate.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">csv</td>
+          <td><span style="color:var(--warn)">Implicit</span></td>
+          <td style="font-size:0.82rem">Semantic embeddings can capture the relevant aspects of tuple content for the given predicate, enabling meaningful clustering.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Documents are processed independently (row-by-row), and the development set is i.i.d. representative of the full document collection.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">The oracle model (GPT-4o) provides the ground truth labels; accuracy is measured relative to the oracle, not human annotations.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">LLM APIs support prefix caching with a 50% discount on cached tokens, and documents are placed before operations in prompts to maximize cache utilization.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">The output space is a fixed set of classes (classification setting). Extension to open-ended generation requires a reliable automatic evaluator.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">LLM token-level log-probabilities are available and can be used as confidence scores.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">A two-model setting (one proxy, one oracle) is sufficient; the framework generalizes to more models but experiments use only two.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">The oracle LLM (GPT-4o) provides ground-truth labels — its predictions are treated as the gold standard for accuracy measurement.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Documents can be meaningfully represented as fixed-dimensional semantic embeddings that capture sufficient information for predicate evaluation.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">The offline embedding phase is a one-time cost that is amortized across many ad-hoc queries, making it acceptable.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">A small sample (~5-10%) is sufficient to train the proxy model and calibrate the cascade for each query.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">The score distributions produced by the contrastive learning framework exhibit monotonic properties that enable the frontier-based threshold selection algorithm to find optimal solutions.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td><span style="color:var(--accent)">Explicit</span></td>
+          <td style="font-size:0.82rem">Boolean (binary) semantic predicates are the target workload — multi-class or continuous-valued predicates are not addressed.</td>
+        </tr>
+      </table>
+    </div>
+  </details>
+</div>
+
+<!-- LIMITATIONS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations Across Papers</div>
+  <details>
+    <summary>33 limitations from 7 papers</summary>
+    <div class="card">
+      <table>
+        <tr><th>Paper</th><th>Limitation</th></tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">bargain</td>
+          <td style="font-size:0.82rem">The full paper text was not available due to a fatal HTML conversion error on ar5iv. No content, title, authors, or methodology could be extracted.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td style="font-size:0.82rem">ThriftLLM may select weaker models on datasets with a <strong>large number of classes</strong> (e.g., Banking77 with 77 classes) due to overestimated success probabilities.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td style="font-size:0.82rem">The method is currently limited to <strong>classification tasks</strong> and does not handle regression or generation tasks.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td style="font-size:0.82rem">The hardness proof for OES is informal (evidence-based argument rather than formal reduction).</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td style="font-size:0.82rem">The uniform error assumption for wrong predictions ((1-p_i)/(K-1) per wrong class) may not hold in practice.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td style="font-size:0.82rem">The independence assumption between LLM responses may not hold for models with similar architectures or training data.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">thriftllm</td>
+          <td style="font-size:0.82rem">The approximation guarantee is <strong>instance-dependent</strong> (data-dependent ratio), not a universal constant-factor guarantee.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td style="font-size:0.82rem">The Model Capability Hypothesis does not hold universally — in ~10% of cases, the weaker model can be correct while the stronger model is wrong, leading to potential physical optimization failures.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td style="font-size:0.82rem">The logical optimizer incurs non-trivial overhead (7-9 seconds per query) due to LLM calls, which can dominate total cost for simple queries with single operators.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td style="font-size:0.82rem">The LLM-as-a-Judge fails in ~10% of cases (failing to abort incorrect rewrites) and ~8% of cases (failing to accept correct rewrites), mainly due to low coverage of data samples and heterogeneous operator outputs.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td style="font-size:0.82rem">The logical optimizer can generate incorrect UDFs for non-LLM replacement, particularly when it lacks knowledge of table contents, and the judge fails to detect errors due to insufficient sample coverage.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td style="font-size:0.82rem">All systems struggle on queries involving complex mathematical computations over string-like values (e.g., calculating average price of properties).</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td style="font-size:0.82rem">No formal statistical guarantees (e.g., confidence intervals or PAC bounds) are provided — quality assurance relies on soft empirical thresholds.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">nirvana</td>
+          <td style="font-size:0.82rem">Semantic cardinality estimation is not yet implemented; the system uses constant selectivity defaults, which limits optimization for operator reordering and join ordering.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td style="font-size:0.82rem">No formal accuracy or recall guarantees are provided for any operator or optimization</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td style="font-size:0.82rem">Logical query plan optimizations (e.g., operator re-ordering) and other general LM-approximation techniques (code synthesis, prompt adaptation) are left to future work</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td style="font-size:0.82rem">Automatic estimation of correlation between semantic similarity scores and user-defined ranking criteria for transparent pivot optimization is left to future work</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td style="font-size:0.82rem">Quantitative study of semantic aggregation quality under different partitioning strategies is left to future work</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td style="font-size:0.82rem">The approximate join algorithms (map-search-filter, search-filter) may miss valid join pairs, with quality depending on predicate-embedding correlation</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">lotus</td>
+          <td style="font-size:0.82rem">Current implementation is limited to Pandas API extension; SQL integration is mentioned but not implemented</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">csv</td>
+          <td style="font-size:0.82rem">Only abstract and metadata are available for extraction; full paper details on theoretical guarantees, specific datasets, baselines, and experimental configurations could not be extracted.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td style="font-size:0.82rem">Higher optimization cost than model cascades: Task Cascades requires ~10× more break-even documents (e.g., ~2,600 vs ~260 for court) before becoming cheaper than Oracle Only.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td style="font-size:0.82rem">Both Task Cascades and model cascades exhibit <strong>high variance</strong> across runs due to LLM non-determinism and small development sets.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td style="font-size:0.82rem">On some workloads (e.g., games), Task Cascades (+G) misses the 90% accuracy target (89.2%), and on pubmed, Task Cascades (+G) costs more than the baseline (1.23×).</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td style="font-size:0.82rem">The approach is currently limited to classification tasks with fixed output classes. Extension to open-ended generation requires reliable automatic evaluators.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td style="font-size:0.82rem">The development set must be large enough (at least 75 documents per split) for statistical guarantees to be achievable.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">task_cascades</td>
+          <td style="font-size:0.82rem">Surrogate operations generated by the LLM agent may not always be effective for cheaper models; the iterative refinement helps but does not guarantee optimal surrogates.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td style="font-size:0.82rem">The accuracy guarantee is empirical (>80% of trials meet target) rather than providing formal statistical guarantees like SUPG's theoretical bounds.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td style="font-size:0.82rem">Formal proofs of optimality for the threshold selection algorithm are deferred to an extended version.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td style="font-size:0.82rem">The system is evaluated only on collections of 10,000 documents; scalability to millions of documents (as mentioned in motivation) is not directly demonstrated.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td style="font-size:0.82rem">The offline embedding phase requires a one-time LLM inference pass over all documents, which may be costly for very large corpora.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td style="font-size:0.82rem">Only boolean semantic predicates are supported; more complex semantic operators (join, aggregation) are not addressed.</td>
+        </tr>
+        <tr>
+          <td style="font-family:var(--mono); font-weight:500; white-space:nowrap">scaledoc</td>
+          <td style="font-size:0.82rem">The proxy model must be retrained for each new ad-hoc query, adding per-query overhead.</td>
+        </tr>
+      </table>
+    </div>
+  </details>
+</div>
+
+<!-- CROSS-REFERENCES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">X</span> Cross-References Between Papers</div>
+  <div class="card">
+    <table>
+      <tr><th>From</th><th>To</th><th>Relationship</th><th>Detail</th></tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td style="font-family:var(--mono); font-weight:500">bargain</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both address cost-quality tradeoffs in LLM-based data processing with formal guarantees. Bargain focuses on semantic filters with statistical guarantees on recall/precision, while ThriftLLM focuses on ensemble selection for classification with approximation guarantees on prediction accuracy. ThriftLLM's per-query budget enforcement contrasts with Bargain's dataset-level quality guarantees.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td><span class="badge badge-info">shared dataset</span></td>
+        <td style="font-size:0.82rem">This is the paper itself.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Task cascades use model cascades (cheap-to-expensive) for cost reduction in unstructured data processing. ThriftLLM uses ensemble selection (parallel invocation of a subset) rather than sequential cascading. FrugalGPT, which ThriftLLM compares against, uses a cascade approach similar in spirit to task cascades. ThriftLLM's adaptive selection has cascade-like sequential behavior but with a different termination criterion based on belief values.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">LOTUS provides semantic operators as a declarative model for AI-based data processing. ThriftLLM could serve as an execution strategy within LOTUS's filter operator, providing cost-effective LLM ensemble selection for classification-based semantic filters.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">CSV focuses on efficient semantic filter paradigms beyond linear LLM invocation. ThriftLLM's adaptive selection similarly avoids invoking all selected LLMs by early termination, but operates at the model-selection level rather than the data-ordering level.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">ScaleDoc scales LLM-based predicates over large document collections. ThriftLLM addresses a complementary problem of which LLMs to use rather than how to scale a single LLM's application across documents.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td><span class="badge badge-info">shared dataset</span></td>
+        <td style="font-size:0.82rem">This IS the Nirvana paper. It introduces the Nirvana framework for multi-modal semantic analytics with LLM-native query optimization.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td><span class="badge badge-info">shared baseline</span></td>
+        <td style="font-size:0.82rem"><strong>Lotus</strong> is used as a primary baseline system. Nirvana compares against Lotus v1.1.0 across all three benchmarks. Lotus uses gpt-4.1 as backend and gpt-4.1-nano as helper model. Nirvana outperforms Lotus in runtime (19-81% reduction), cost (18-98% reduction), and quality (75% vs 8.3% on Movie). Both share the concept of semantic operators (map, filter, reduce) but Nirvana adds logical plan optimization and more sophisticated physical optimization.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Nirvana's physical optimizer addresses a similar problem to <strong>ThriftLLM</strong> — cost-effective LLM selection. However, Nirvana selects models per-operator within multi-operator query plans rather than for standalone classification tasks. The <strong>improvement score</strong> metric and <strong>model capability hypothesis</strong> are Nirvana's novel contributions to this space.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both Nirvana and <strong>task cascades</strong> address optimization of multi-step LLM-driven data processing pipelines. Nirvana's logical optimizer performs plan-level transformations (fusion, pushdown, replacement) while task cascades focus on cascading execution strategies. Nirvana's physical optimizer shares the concept of routing between models of different capabilities.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td style="font-family:var(--mono); font-weight:500">bargain</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both systems aim to reduce LLM processing costs while maintaining quality. <strong>BARGAIN</strong> provides formal statistical guarantees via proxy models and sampling, while Nirvana uses soft empirical thresholds (ε=0.8) and LLM-as-a-Judge verification without formal bounds. Nirvana's approach is broader (multi-operator plans, multi-modal data) but lacks BARGAIN's formal guarantee framework.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both address efficient semantic filtering. Nirvana's physical optimizer with improvement scores and model capability hypothesis shares conceptual similarity with <strong>CSV</strong>'s approach to efficient semantic filter evaluation, but Nirvana operates at the query plan level rather than individual filter optimization.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both systems address scaling LLM-based processing over large collections. Nirvana demonstrates scalability to 18,891 records (Game dataset) through logical and physical optimization, while <strong>ScaleDoc</strong> focuses specifically on document-level predicate scaling. Nirvana's non-LLM replacement and operator fusion are complementary to ScaleDoc's approaches.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td><span class="badge badge-info">shared dataset|shared baseline|extends|complements</span></td>
+        <td style="font-size:0.82rem">This IS the LOTUS paper. It defines the <strong>semantic operators</strong> programming model that other anchor papers reference. It introduces sem_filter, sem_join, sem_topk, sem_agg, sem_map, sem_extract, sem_search, sem_cluster_by, and sem_index as composable declarative operators.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td style="font-family:var(--mono); font-weight:500">bargain</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">LOTUS uses <strong>model cascades</strong> with log-probability-based confidence scoring for sem_filter, similar to the cascade approach in Bargain but without formal statistical guarantees. LOTUS' cascade scoring leverages the binary-label output semantics of the filter operator rather than general-purpose scoring.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">LOTUS' <strong>sem_filter</strong> with model cascades relates to CSV's semantic filter paradigm. LOTUS uses log-probability confidence thresholds for cascade routing, while CSV explores beyond-linear invocation patterns. Both address efficient semantic filtering over datasets.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">LOTUS implements <strong>model cascades</strong> for sem_filter and sem_topk using proxy-oracle LM pairs, which relates to task cascades' approach of varying task complexity across cascade stages. LOTUS' cascades are operator-specific rather than task-level.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both LOTUS and Nirvana extend relational query processing with semantic/AI-based operations. LOTUS focuses on <strong>declarative semantic operators</strong> over text data with a Pandas API, while Nirvana targets multi-modal analytics. Both share the vision of integrating AI reasoning into data processing pipelines.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">LOTUS' model cascade optimization for sem_filter relates to ThriftLLM's cost-effective LLM selection. Both use multiple LMs of varying cost/quality, but LOTUS routes at the record level based on confidence while ThriftLLM selects models for classification tasks.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both address scaling LLM-based predicates over large document collections. LOTUS provides general-purpose semantic operators with approximate join algorithms and cascade optimizations, while ScaleDoc focuses specifically on predicate evaluation over large document collections.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td><span class="badge badge-info">extends</span></td>
+        <td style="font-size:0.82rem">CSV addresses the <strong>semantic filter operator</strong> which is a cornerstone of the <strong>semantic operators</strong> framework proposed in LOTUS. CSV optimizes the execution of semantic filters from linear to sublinear LLM invocations.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td style="font-family:var(--mono); font-weight:500">bargain</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both CSV and BARGAIN aim to <strong>reduce LLM costs</strong> while providing <strong>guarantees</strong>. BARGAIN focuses on cost-accuracy tradeoffs with statistical guarantees, while CSV achieves sublinear complexity through clustering-sampling-voting with error guarantees.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Task cascades reduce costs by routing through cheaper models first, while CSV reduces costs by <strong>avoiding per-tuple LLM invocation entirely</strong> through cluster-level inference. Both aim to break the linear invocation pattern.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both papers address scaling LLM-based predicates over large collections. ScaleDoc focuses on document collections while CSV focuses on <strong>tabular semantic filtering</strong> with sublinear invocation guarantees.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">ThriftLLM optimizes cost by selecting among multiple LLMs, while CSV optimizes cost by <strong>reducing the number of invocations</strong> regardless of which LLM is used. The approaches are orthogonal and could be combined.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both papers deal with semantic-aware data processing. Nirvana focuses on multi-modal analytics while CSV specifically optimizes the <strong>semantic filter</strong> operator for efficiency.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td><span class="badge badge-info">shared baseline</span></td>
+        <td style="font-size:0.82rem"><strong>LOTUS</strong> (Patel et al., 2025) is used as a baseline in Q2 experiments. LOTUS embeds model cascades inside filter operators with guarantees on precision and recall rather than overall accuracy. Task Cascades uses the same 2-Model Cascade approach from LOTUS as its primary baseline. The paper also uses LOTUS's sem_filter operator for comparison across precision/recall target combinations.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both papers address cost reduction for LLM-based data processing with accuracy guarantees. Task Cascades focuses on varying operations and document fractions in addition to models, while <strong>CSV</strong> focuses on cost-effective selection with guarantees. Both use confidence thresholds and statistical bounds.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td><span class="badge badge-info">extends</span></td>
+        <td style="font-size:0.82rem">This IS the task_cascades paper. It extends the standard <strong>model cascade</strong> framework by introducing three additional dimensions of variation: surrogate operations, document fractions, and learned document restructuring.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td style="font-family:var(--mono); font-weight:500">bargain</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both papers optimize LLM-based semantic filtering/classification with proxy-oracle cascades. Task Cascades introduces surrogate operations and document pruning as additional optimization dimensions beyond model selection. Both use confidence-based routing.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both papers address scaling LLM-based predicates over large document collections. Task Cascades focuses on cost reduction through task variation, while ScaleDoc focuses on scaling strategies for document-level predicates.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both papers deal with semantic-aware processing of unstructured data. Task Cascades focuses specifically on classification operations with cost optimization, while Nirvana addresses broader multi-modal analytics.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td style="font-family:var(--mono); font-weight:500">lotus</td>
+        <td><span class="badge badge-info">extends</span></td>
+        <td style="font-size:0.82rem">ScaleDoc addresses the same semantic predicate filtering task as <strong>Lotus</strong> but replaces Lotus's LLM-based proxy approach with a much more lightweight contrastive-learning MLP proxy. ScaleDoc also compares against SUPG, the cascade algorithm adopted by Lotus, showing superior data reduction. Lotus is cited as using smaller LLMs as filtering proxies which remain too expensive for large-scale applications.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td style="font-family:var(--mono); font-weight:500">task_cascades</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both ScaleDoc and task cascades use proxy-oracle cascade architectures to reduce expensive LLM invocations. ScaleDoc focuses specifically on document-level boolean predicates with contrastive learning proxies, while task cascades generalize the cascade concept across different task types. ScaleDoc's adaptive threshold selection addresses similar challenges of determining when to route to the oracle.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td style="font-family:var(--mono); font-weight:500">bargain</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both systems aim to reduce LLM costs while meeting accuracy targets for data processing. ScaleDoc uses contrastive-learning proxy with empirical calibration guarantees, while BARGAIN provides formal statistical guarantees. ScaleDoc's calibration approach (stratified sampling + distribution reconstruction) addresses similar challenges of estimating accuracy from small samples.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td style="font-family:var(--mono); font-weight:500">thriftllm</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both address cost-effective LLM selection/routing for classification tasks. ThriftLLM focuses on selecting among multiple LLMs, while ScaleDoc uses a non-LLM lightweight proxy to filter before a single oracle LLM, targeting a different point in the cost-accuracy tradeoff space.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td style="font-family:var(--mono); font-weight:500">csv</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both ScaleDoc and CSV address efficient semantic filtering with proxy models. CSV explores beyond linear LLM invocation patterns, while ScaleDoc specifically decouples offline representation from online filtering with contrastive learning. Both aim to reduce the number of expensive LLM calls for semantic predicates.</td>
+      </tr>
+      <tr>
+        <td style="font-family:var(--mono); font-weight:500">scaledoc</td>
+        <td style="font-family:var(--mono); font-weight:500">nirvana</td>
+        <td><span class="badge badge-info">complements</span></td>
+        <td style="font-size:0.82rem">Both systems deal with semantic-aware analytics over unstructured data. ScaleDoc focuses specifically on scaling boolean predicates over document collections, while Nirvana addresses broader multi-modal semantic analytics.</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="footer">
+  <p>Cross-Paper Comparison — Research Paper Toolkit v0.1</p>
+  <p>Generated: 2026-03-30 | 7 papers | Framework: Dr. Lan&#39;s 7-Layer Semantic Filter Framework</p>
+</div>
+
+</div>
+</body>
+</html>

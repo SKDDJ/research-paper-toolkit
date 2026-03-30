@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Deep Review — Task Cascades for Efficient Unstructured Data Processing</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --border: #e8e6e1; --text: #1a1a1a;
+  --muted: #6b6860; --accent: #2d5a27; --accent-bg: #eef4ed; --accent-border: #c2d9bf;
+  --warn: #8b5e00; --warn-bg: #fef7ec; --warn-border: #f0d9a0;
+  --danger: #8b1a1a; --danger-bg: #fdf0f0;
+  --blue: #1a4f8b; --blue-bg: #edf3fb; --blue-border: #b8d0eb;
+  --purple: #4a2d7a; --purple-bg: #f3eff8;
+  --radius: 6px; --font: 'DM Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif; --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.paper-header { margin-bottom: 2rem; }
+.paper-header h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 500; }
+.badge-venue { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.badge-year { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-level { background: var(--purple-bg); color: var(--purple); border: 1px solid #d4c8e8; }
+.authors { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.25rem; }
+.authors strong { color: var(--text); font-weight: 500; }
+.institution { font-size: 0.8rem; color: var(--muted); }
+.links { margin-top: 0.5rem; display: flex; gap: 0.75rem; }
+.links a { font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; }
+.links a:hover { text-decoration: underline; }
+.section { margin-bottom: 1.5rem; }
+.section-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.section-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: white; flex-shrink: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+.card-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.src { display: inline-block; font-size: 0.65rem; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; background: #f0eeea; color: var(--muted); margin-left: 4px; cursor: help; border: 1px solid var(--border); }
+.src-missing { background: var(--danger-bg); color: var(--danger); border-color: #e8c0c0; }
+.framework-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+@media (max-width: 600px) { .framework-grid { grid-template-columns: 1fr; } }
+.fw-cell { padding: 0.75rem; border-radius: var(--radius); border-left: 3px solid; }
+.fw-cell h4 { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.fw-cell p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.fw-1 { background: #f0f7ff; border-color: #3b82f6; } .fw-1 h4 { color: #1e40af; }
+.fw-2 { background: #fef7f0; border-color: #f59e0b; } .fw-2 h4 { color: #92400e; }
+.fw-3 { background: #f0fdf4; border-color: #22c55e; } .fw-3 h4 { color: #166534; }
+.fw-4 { background: #fdf2f8; border-color: #ec4899; } .fw-4 h4 { color: #9d174d; }
+.fw-5 { background: #f5f3ff; border-color: #8b5cf6; } .fw-5 h4 { color: #5b21b6; }
+.fw-6 { background: #fffbeb; border-color: #eab308; } .fw-6 h4 { color: #854d0e; }
+.fw-7 { background: #fef2f2; border-color: #ef4444; } .fw-7 h4 { color: #991b1b; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.75rem; background: #f5f4f0; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf9f6; }
+.num { font-family: var(--mono); font-size: 0.8rem; }
+.best { font-weight: 600; color: var(--accent); }
+details { margin-bottom: 0.5rem; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius); }
+details summary:hover { background: #f5f4f0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.callout { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.75rem; font-size: 0.85rem; line-height: 1.6; }
+.callout-insight { background: var(--accent-bg); border: 1px solid var(--accent-border); }
+.callout-caution { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+.callout-label { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; display: block; }
+.callout-insight .callout-label { color: var(--accent); }
+.callout-caution .callout-label { color: var(--warn); }
+.cmp { display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.25rem; font-size: 0.82rem; }
+.cmp-label { font-weight: 500; min-width: 100px; flex-shrink: 0; }
+.cmp-val { color: var(--muted); }
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+/* Emphasis for key terms and values */
+.card strong, .fw-cell strong, .cmp-val strong { color: var(--text); font-weight: 600; }
+.key-value { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+
+/* Formula blocks */
+.formula-card { background: #f8f7f4; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+.formula-card .formula-id { font-family: var(--mono); font-size: 0.75rem; color: var(--blue); font-weight: 600; }
+.formula-card .formula-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.25rem; }
+.formula-card .formula-latex { font-size: 1rem; margin: 0.5rem 0; }
+
+/* Table rendering within key tables */
+.card table { margin-top: 0.5rem; }
+.card table td { font-family: var(--mono); font-size: 0.78rem; }
+
+/* Figure cards */
+.figure-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; margin-bottom: 0.5rem; }
+.figure-card img { max-width: 100%; border-radius: 4px; margin-bottom: 0.5rem; }
+.figure-card .fig-caption { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+.figure-card .fig-id { font-weight: 600; font-size: 0.82rem; margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="paper-header">
+  <h1>Task Cascades for Efficient Unstructured Data Processing</h1>
+  <div class="meta-row">
+    <span class="badge badge-venue">PACMMOD (SIGMOD)</span>
+    <span class="badge badge-year">2026</span>
+    <span class="badge badge-level">Level 2 Review</span>
+  </div>
+  <div class="authors">
+    <strong>Shreya Shankar</strong>,     <strong>Sepanta Zeighami</strong>,     <strong>Aditya G. Parameswaran</strong>  </div>
+  <div class="institution">UC Berkeley</div>
+  <div class="links">
+    <a href="https://arxiv.org/abs/2601.05536">arXiv</a>
+    <a href="https://arxiv.org/pdf/2601.05536.pdf">PDF</a>
+    <a href="https://github.com/ucbepic/task-cascades">Code</a>
+    <a href="10.1145/3786702">DOI</a>
+  </div>
+</div>
+
+<!-- CORE CONTRIBUTION -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">S</span> Core Contribution</div>
+  <div class="card">
+    <p style="font-size:0.9rem">The paper introduces <strong>task cascades</strong>, a framework that generalizes <strong>model cascades</strong> by allowing each cascade stage to vary not only the model but also the <strong>surrogate operation</strong> and the <strong>document fraction</strong> processed. An <strong>agentic loop</strong> iteratively discovers surrogate operations, a <strong>lightweight relevance classifier</strong> restructures documents to front-load relevant content, and a <strong>greedy cascade assembly</strong> algorithm (motivated by NP-hardness via reduction from <strong>Minimum Sum Set Cover</strong>) constructs cost-optimal cascades with optional <strong>statistical accuracy guarantees</strong>.
+      <span class="src">Section 1, Section 2</span>
+    </p>
+  </div>
+</div>
+
+<!-- FRAMEWORK MAPPING (Level 2 only) -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Mapping to Dr. Lan&#39;s 7-Layer Semantic Filter Framework</div>
+  <div class="framework-grid">
+    <div class="fw-cell fw-1">
+      <h4>1. Data Representation Layer</h4>
+      <p>Documents are segmented into fixed-granularity chunks, each scored by a <strong>lightweight logistic regression classifier</strong> trained on oracle-labeled relevance data using <strong>text-embedding-3-small</strong> embeddings. Chunks are reordered so the most relevant content appears first, enabling efficient <strong>prefix-based fractional processing</strong> at fractions f ∈ {0.1, 0.25, 0.5, 1.0}.
+        <span class="src">Section 4</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-2">
+      <h4>2. Candidate Executor / Proxy Layer</h4>
+      <p>The framework uses a <strong>cheap proxy model</strong> (GPT-4o-mini, ~17× cheaper) and an <strong>expensive oracle</strong> (GPT-4o). Both models are used to execute candidate tasks at various document fractions. The framework generalizes to any number of models but experiments focus on the two-model setting. An <strong>LLM agent</strong> (o1-mini) is used separately for surrogate operation generation.
+        <span class="src">Section 2.2, Section 7.1.4</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-3">
+      <h4>3. Unit of Decision Layer</h4>
+      <p>Each document is the unit of decision. At each cascade stage, the system processes a <strong>fraction fᵢ of the document</strong> (the top-fᵢ most relevant content after restructuring). The decision to accept or escalate is made per-document based on the model's <strong>class-specific confidence threshold</strong> τᵢᶜ.
+        <span class="src">Section 2.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-4">
+      <h4>4. Predicate Transformation Layer</h4>
+      <p>The original operation is transformed into multiple <strong>surrogate operations</strong>—simpler, decomposed, or related operations whose output classes are a subset of the original. An <strong>agentic loop</strong> using o1-mini iteratively proposes surrogates informed by <strong>failure cases</strong> and <strong>hard examples</strong> from the current cascade. Examples include prerequisite checks (e.g., 'does the opinion mention a lower court?') and pattern-based heuristics. This is a key novel contribution beyond standard model cascades.
+        <span class="src">Section 5</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-5">
+      <h4>5. Calibration / Sampling Layer</h4>
+      <p>Confidence scores are derived from <strong>LLM token-level log-probabilities</strong> transformed into class distributions p_m(c|x_f, o). Thresholds are first set per-task on the development set to achieve per-class accuracy ≥ α (Algorithm 2). A subsequent <strong>threshold adjustment</strong> procedure (Algorithm 3) uses a held-out validation split with the <strong>Waudby-Smith and Ramdas (2024)</strong> estimator to provide statistical guarantees. The development set is split into training (for cascade construction) and validation (for threshold adjustment), each with at least 75 documents.
+        <span class="src">Section 3.2.1, Section 3.2.3, Section 3.2.4</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-6">
+      <h4>6. Routing / Action Layer</h4>
+      <p>Documents flow through an <strong>ordered sequence of tasks</strong>. At each stage, if the model's confidence exceeds the class-specific threshold, the prediction is accepted and the cascade terminates for that document. Otherwise, the document is <strong>escalated</strong> to the next task. The final fallback is always the <strong>oracle task</strong> (full document, original operation, oracle model). Task ordering is determined by a <strong>greedy algorithm</strong> inspired by approximation algorithms for <strong>Minimum Sum Set Cover</strong>, which sequentially adds the task that most reduces total inference cost while satisfying per-task accuracy constraints.
+        <span class="src">Section 3.2.2, Section 3.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-7">
+      <h4>7. Guarantee Layer</h4>
+      <p>The system provides a guarantee that Pr(Acc(π*) < α) ≤ δ, where δ is user-specified (default 0.25). This is achieved via <strong>threshold adjustment</strong> on a validation split using the <strong>Waudby-Smith and Ramdas (2024)</strong> concentration inequality, which leverages both sample mean and variance for tighter bounds than Hoeffding's inequality. The procedure accounts for multiple hypothesis tests within the adjustment loop. If no cascade meets the guarantee, the system falls back to oracle-only processing.
+        <span class="src">Section 3.2.3, Theorem 3.2, Appendix A</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- METHOD COMPONENTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#2d5a27">M</span> Method Components</div>
+  <div class="card">
+    <details open>
+      <summary>Task Cascade Framework</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A <strong>task cascade</strong> is an ordered sequence of tasks π = (T₁, T₂, …, Tₖ), where each task Tᵢ = (mᵢ, oᵢ, fᵢ, τᵢ) specifies a <strong>model</strong>, an <strong>operation</strong> (original or surrogate), a <strong>document fraction</strong>, and <strong>class-specific confidence thresholds</strong>. Documents are processed sequentially through tasks; if confidence exceeds the threshold, the prediction is accepted; otherwise, the document is escalated. This generalizes <strong>model cascades</strong> which only vary the model.
+        <span class="src">Section 2.1</span>
+      </p>
+    </details>
+    <details>
+      <summary>Greedy Cascade Assembly</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Given a set of candidate task configurations, the algorithm <strong>greedily</strong> adds the task that most reduces total inference cost while maintaining <strong>per-task accuracy</strong> at or above the target α on its assigned subset of documents. This is motivated by the <strong>NP-hardness</strong> of optimal task ordering (Theorem 3.1), proven via reduction from <strong>Minimum Sum Set Cover</strong>.
+        <span class="src">Section 3.2.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Threshold Selection and Filtering</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">For each candidate task, the system finds the <strong>lowest confidence threshold</strong> per class such that predictions above the threshold achieve the target accuracy α. Tasks that cannot confidently classify at least <strong>g=10%</strong> of the development set are discarded.
+        <span class="src">Section 3.2.1</span>
+      </p>
+    </details>
+    <details>
+      <summary>Threshold Adjustment for Statistical Guarantees</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A post-processing step that adjusts confidence thresholds using a <strong>validation split</strong> to ensure the cascade meets the accuracy target α with failure probability at most δ. Uses an estimator from <strong>Waudby-Smith and Ramdas (2024)</strong> that leverages both sample mean and variance for tighter bounds than Hoeffding's inequality. Thresholds are iteratively relaxed from conservative to less conservative using a <strong>shift index</strong> strategy.
+        <span class="src">Section 3.2.3, Section 3.2.4</span>
+      </p>
+    </details>
+    <details>
+      <summary>Document Restructuring</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Documents are reordered so that the most <strong>relevant content</strong> for the original operation appears first, enabling <strong>prefix caching</strong> cost savings. A <strong>lightweight logistic regression classifier</strong> is trained on oracle-labeled chunk relevance data (using <strong>text-embedding-3-small</strong> embeddings) to score and rank document chunks. Chunk granularity is determined by asking the oracle to identify minimal line ranges needed to answer the operation.
+        <span class="src">Section 4</span>
+      </p>
+    </details>
+    <details>
+      <summary>Surrogate Operation Generation (Agentic Loop)</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">An <strong>LLM agent</strong> (o1-mini) iteratively proposes <strong>surrogate operations</strong>—simpler or decomposed variants of the original operation whose output classes are a subset of the original. The agent receives <strong>failure cases</strong> (documents reaching the oracle), <strong>hard examples</strong>, and summary statistics from the current cascade. Each surrogate is paired with all models and document fractions to create new candidate tasks. The loop runs for <strong>nₐ=3 iterations</strong> with <strong>nₛ=5 surrogates per iteration</strong>.
+        <span class="src">Section 5</span>
+      </p>
+    </details>
+    <details>
+      <summary>Cost Model with Prefix Caching</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">The cost model accounts for <strong>prefix caching</strong> offered by LLM APIs (50% discount on cached tokens). Documents are placed before operations in prompts to maximize cache reuse across tasks using the same model. The total cost includes new input tokens, cached input tokens, and operation tokens.
+        <span class="src">Section 2.1, Section 6</span>
+      </p>
+    </details>
+  </div>
+</div>
+
+<!-- THEORETICAL RESULTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">T</span> Theoretical Results</div>
+  <div class="card">
+    <div class="cmp">
+      <span class="cmp-label">Theorem</span>
+      <span class="cmp-val">Constructing an optimal task cascade is <strong>NP-Hard</strong>, proven via reduction from <strong>Minimum Sum Set Cover</strong> (MSSC). The hardness holds even with a single proxy model and full documents (f=1).
+        <span class="src">Theorem 3.1, Section 3.1</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Theorem</span>
+      <span class="cmp-val">For any monotonic adjustment strategy ε and appropriate estimator E, Algorithm 3 returns a cascade π* with Pr(Acc(π*) < α) ≤ δ.
+        <span class="src">Theorem 3.2, Section 3.2.3</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- KEY FORMULAS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">Q</span> Key Formulas</div>
+  <div class="formula-card">
+    <span class="formula-id">Cost per task</span>
+    <span class="src">Section 2.1</span>
+    <div class="formula-latex">\[\mathrm{Cost}(T_{i},x)=\begin{cases}|x_{f_{i}}|\,\lambda_{\mathrm{in}}+|o_{i}|\,\lambda_{\mathrm{in}}&amp;\text{if $x_{f_{i}}$ is new}\\|x_{f_{j}}|\,\lambda_{\mathrm{cached}}+(|x_{f_{i}}|-|x_{f_{j}}|)\,\lambda_{\mathrm{in}}+|o_{i}|\,\lambda_{\mathrm{in}}&amp;\text{if $x_{f_{j}}\subseteq x_{f_{i}}$}\end{cases}\]</div>
+    <div class="formula-desc">Cost to run task Tᵢ on document x, accounting for prefix caching from previously processed document fractions</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Total cascade cost</span>
+    <span class="src">Section 2.1</span>
+    <div class="formula-latex">\[\mathrm{Cost}(\pi,x)=\sum_{i=1}^{j^{*}}\mathrm{Cost}(T_{i},x)\]</div>
+    <div class="formula-desc">Total inference cost for document x through cascade π, where j* is the index of the first confident prediction or k+1 for oracle</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Optimization objective</span>
+    <span class="src">Section 2.1</span>
+    <div class="formula-latex">\[\min_{\pi}\sum_{x\in D}\mathrm{Cost}(\pi,x) \quad \text{s.t.} \quad \Pr\left[\frac{1}{|D|}\sum_{x\in D}\mathbb{I}[\mathrm{Cascade}(\pi,x)=T_{k+1}(x)]\geq\alpha\right]\geq 1-\delta\]</div>
+    <div class="formula-desc">The optimization problem: minimize total inference cost subject to the cascade matching the oracle on at least α fraction of documents with probability at least 1-δ</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Surrogate evaluation cost</span>
+    <span class="src">Section 6</span>
+    <div class="formula-latex">\[C_{\text{eval}}=Nn_{s}n_{a}\left[LS_{f}(\lambda_{o}+\lambda_{p})+P|\mathcal{F}|(\lambda_{o}+\lambda_{p})\right]\]</div>
+    <div class="formula-desc">Total cost of evaluating all candidate surrogate tasks on the development set across all iterations</div>
+  </div>
+</div>
+
+<!-- KEY FIGURES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">G</span> Key Figures</div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 1
+      <span class="src">Figure 1</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2601.05536/assets/figures/task_cascade_png.png" alt="Figure 1" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Task vs. model cascade for determining whether a Supreme Court opinion overturns a lower court decision</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Illustrates the key conceptual difference: a &lt;strong&gt;task cascade&lt;/strong&gt; varies document fraction, model, and operation at each stage (with surrogate operations reused at different fractions), while a &lt;strong&gt;model cascade&lt;/strong&gt; only varies the model. Shows how surrogate operations like &#39;does the opinion mention a lower court?&#39; can resolve documents cheaply.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 2
+      <span class="src">Figure 2</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2601.05536/assets/figures/workflow_png.png" alt="Figure 2" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Overview of our approach</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows the end-to-end pipeline: user poses a classification query, documents are restructured to prioritize relevant chunks, then an iterative agentic loop proposes surrogate operations and assembles a cost-effective task cascade.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 4
+      <span class="src">Figure 4</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2601.05536/assets/x1.png" alt="Figure 4" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Cost stability across 10 independent runs</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Box plots showing cost distributions for 2-Model Cascade (+G) and Task Cascades (+G) across 10 runs on 5 workloads. Both methods exhibit &lt;strong&gt;high variance&lt;/strong&gt;, but Task Cascades consistently achieves &lt;strong&gt;lower mean and median costs&lt;/strong&gt;.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 5
+      <span class="src">Figure 5</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2601.05536/assets/x2.png" alt="Figure 5" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Accuracy vs. cost trade-offs as target accuracy varies 75% to 95%</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Pareto frontier plots showing Task Cascades (green) &lt;strong&gt;dominating&lt;/strong&gt; on easy workloads and providing robust gains on harder tasks. LOTUS (+G) shown in pink for binary workloads. Largest gains at lower accuracy targets; gap narrows at higher targets on challenging workloads.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 7
+      <span class="src">Figure 7, Appendix D</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2601.05536/assets/x3.png" alt="Figure 7" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Parameter sensitivity analysis</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows cost and accuracy for different parameter settings (nₐ, nₛ, F) on two workloads. Task Cascades demonstrates &lt;strong&gt;low variance across parameter configurations&lt;/strong&gt;, indicating robustness.</div>
+  </div>
+</div>
+
+<!-- KEY TABLES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">B</span> Key Tables</div>
+  <div class="card">
+    <div class="card-title">Table 2
+      <span class="src">Table 2</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Workloads with average word counts and corpus sizes</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Dataset</th>
+          <th>Description of o orig o_{\mathrm{orig}}</th>
+          <th>Avg. words</th>
+          <th># Docs</th>
+        </tr>
+        <tr>
+          <td>agnews</td>
+          <td>Classify news article summaries into one of four topics: World , Sports , Business , or Science/Tech .</td>
+          <td>~37</td>
+          <td>~128k</td>
+        </tr>
+        <tr>
+          <td>court</td>
+          <td>Determine if a U.S. Supreme Court opinion reverses the lower-court ruling.</td>
+          <td>~3.7k</td>
+          <td>~36k</td>
+        </tr>
+        <tr>
+          <td>enron</td>
+          <td>Identify emails sent by C-suite or VP-level executives in the Enron corpus.</td>
+          <td>~1.5k</td>
+          <td>~500k</td>
+        </tr>
+        <tr>
+          <td>fever</td>
+          <td>Decide whether a natural-language claim is supported by the provided evidence snippets.</td>
+          <td>~5.1k</td>
+          <td>185k</td>
+        </tr>
+        <tr>
+          <td>games</td>
+          <td>Determine whether a review praises a different game more than the one being reviewed.</td>
+          <td>~1.1k</td>
+          <td>~6.4M</td>
+        </tr>
+        <tr>
+          <td>legal</td>
+          <td>Detect covenants not to sue or IP no-challenge clauses in license agreements.</td>
+          <td>~8.0k</td>
+          <td>510</td>
+        </tr>
+        <tr>
+          <td>pubmed</td>
+          <td>Classify biomedical articles into one of six study types: RCT , Observational , Meta-analysis , Bench/Lab , Computational , or Review .</td>
+          <td>~3.1k</td>
+          <td>~133k</td>
+        </tr>
+        <tr>
+          <td>wiki_talk</td>
+          <td>Predict whether a Wikipedia Talk-page discussion culminates in an edit revert.</td>
+          <td>~0.9k</td>
+          <td>~125k</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Describes 8 workloads spanning news, legal, email, fact verification, game reviews, biomedical, and online discourse domains. Document lengths range from ~37 words (agnews) to ~8.0k words (legal). Corpus sizes range from 510 to ~6.4M documents.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 3
+      <span class="src">Table 3</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Inference results at 90% accuracy target</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>agnews</th>
+          <th>court</th>
+          <th>enron</th>
+          <th>fever</th>
+          <th>games</th>
+          <th>legal</th>
+          <th>pubmed</th>
+          <th>wiki_talk</th>
+          <th>Avg. Cost</th>
+        </tr>
+        <tr>
+          <td>Oracle Only</td>
+          <td>$0.45</td>
+          <td>$11.05</td>
+          <td>$6.34</td>
+          <td>$13.01</td>
+          <td>$3.13</td>
+          <td>$10.20</td>
+          <td>$8.36</td>
+          <td>$2.94</td>
+          <td>$6.94</td>
+        </tr>
+        <tr>
+          <td>2-Model Cascade</td>
+          <td>94.1% — $0.03</td>
+          <td>89.4% — $2.81</td>
+          <td>89.1% — $0.61</td>
+          <td>94.4% — $0.80</td>
+          <td>89.8% — $0.78</td>
+          <td>91.5% — $3.23</td>
+          <td>92.5% — $0.56</td>
+          <td>91.4% — $0.18</td>
+          <td>$1.13</td>
+        </tr>
+        <tr>
+          <td>2-Model Cascades (+G)</td>
+          <td>94.7% — $0.04</td>
+          <td>93.0% — $4.06</td>
+          <td>96.2% — $1.56</td>
+          <td>96.0% — $2.22</td>
+          <td>95.2% — $1.29</td>
+          <td>94.8% — $4.12</td>
+          <td>93.6% — $0.83</td>
+          <td>95.6% — $0.49</td>
+          <td>$1.83</td>
+        </tr>
+        <tr>
+          <td>Task Cascades</td>
+          <td>95.3% — 0.66×</td>
+          <td>88.0% — 0.72×</td>
+          <td>95.5% — 0.11×</td>
+          <td>90.6% — 0.54×</td>
+          <td>92.0% — 1.09×</td>
+          <td>91.3% — 0.27×</td>
+          <td>91.6% — 0.84×</td>
+          <td>91.5% — 0.64×</td>
+          <td>0.59×</td>
+        </tr>
+        <tr>
+          <td>Task Cascades (+G)</td>
+          <td>95.4% — 0.71×</td>
+          <td>90.8% — 0.53×</td>
+          <td>95.6% — 0.09×</td>
+          <td>92.4% — 0.44×</td>
+          <td>89.2% — 0.49×</td>
+          <td>91.2% — 0.26×</td>
+          <td>93.5% — 1.23×</td>
+          <td>92.3% — 0.37×</td>
+          <td>0.52×</td>
+        </tr>
+        <tr>
+          <td>Task Cascades (Lite)</td>
+          <td>94.1% — 0.78×</td>
+          <td>88.6% — 0.76×</td>
+          <td>95.5% — 0.14×</td>
+          <td>90.6% — 0.63×</td>
+          <td>90.2% — 0.70×</td>
+          <td>90.2% — 0.41×</td>
+          <td>91.4% — 0.86×</td>
+          <td>89.9% — 0.68×</td>
+          <td>0.62×</td>
+        </tr>
+        <tr>
+          <td>No Surrogates</td>
+          <td>95.1% — 1.43×</td>
+          <td>94.5% — 1.25×</td>
+          <td>98.0% — 0.49×</td>
+          <td>92.5% — 0.86×</td>
+          <td>90.5% — 1.16×</td>
+          <td>90.0% — 0.95×</td>
+          <td>91.9% — 0.79×</td>
+          <td>96.0% — 2.77×</td>
+          <td>1.21×</td>
+        </tr>
+        <tr>
+          <td>Single‑Iteration</td>
+          <td>92.4% — 0.56×</td>
+          <td>93.8% — 1.21×</td>
+          <td>95.9% — 0.15×</td>
+          <td>90.0% — 0.30×</td>
+          <td>89.2% — 1.21×</td>
+          <td>92.8% — 1.04×</td>
+          <td>93.4% — 0.76×</td>
+          <td>90.6% — 0.61×</td>
+          <td>0.66×</td>
+        </tr>
+        <tr>
+          <td>No Filtering</td>
+          <td>93.9% — 0.74×</td>
+          <td>90.0% — 1.10×</td>
+          <td>98.5% — 0.96×</td>
+          <td>95.5% — 1.82×</td>
+          <td>98.4% — 1.84×</td>
+          <td>96.1% — 0.93×</td>
+          <td>95.1% — 1.47×</td>
+          <td>98.4% — 3.51×</td>
+          <td>1.55×</td>
+        </tr>
+        <tr>
+          <td>Naive RAG Filter</td>
+          <td>95.1% — 0.95×</td>
+          <td>90.9% — 0.94×</td>
+          <td>97.2% — 0.30×</td>
+          <td>90.9% — 0.42×</td>
+          <td>85.1% — 0.61×</td>
+          <td>88.9% — 0.12×</td>
+          <td>90.5% — 0.88×</td>
+          <td>89.9% — 0.44×</td>
+          <td>0.65×</td>
+        </tr>
+        <tr>
+          <td>Selectivity Ordering</td>
+          <td>94.2% — 1.20×</td>
+          <td>90.8% — 2.33×</td>
+          <td>98.8% — 5.50×</td>
+          <td>93.1% — 5.08×</td>
+          <td>90.1% — 2.32×</td>
+          <td>92.8% — 1.86×</td>
+          <td>93.8% — 8.44×</td>
+          <td>96.9% — 8.81×</td>
+          <td>4.44×</td>
+        </tr>
+        <tr>
+          <td>Restructure (Top-25%)</td>
+          <td>96.5% — 2.67×</td>
+          <td>93.9% — 1.22×</td>
+          <td>99.4% — 0.85×</td>
+          <td>90.5% — 0.37×</td>
+          <td>97.1% — 1.70×</td>
+          <td>95.3% — 1.78×</td>
+          <td>92.6% — 2.38×</td>
+          <td>98.1% — 3.49×</td>
+          <td>1.81×</td>
+        </tr>
+        <tr>
+          <td>RAG + NoSur</td>
+          <td>96.0% — 1.83×</td>
+          <td>92.1% — 1.10×</td>
+          <td>98.2% — 1.73×</td>
+          <td>91.2% — 0.54×</td>
+          <td>87.9% — 1.09×</td>
+          <td>90.0% — 0.77×</td>
+          <td>90.5% — 0.94×</td>
+          <td>93.4% — 1.21×</td>
+          <td>1.16×</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Main results table showing accuracy and cost for all methods and variants across 8 workloads. Key takeaway: <strong>Task Cascades (+G) achieves 0.52× average cost</strong> vs 2-Model Cascade (+G). Component ablations show document pruning (No Filtering: 1.55×) and surrogates (No Surrogates: 1.21×) both contribute significantly. Selectivity Ordering (4.44×) validates greedy assembly.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 4
+      <span class="src">Table 4</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Offline optimization costs, break-even analysis, and estimated cost at 1M documents</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th></th>
+          <th>Optimization Cost ($)</th>
+          <th>Break-Even (Documents)</th>
+          <th>Estimated Total Cost @ 1M Docs ($)</th>
+        </tr>
+        <tr>
+          <td>Workload</td>
+          <td>TC</td>
+          <td>TC (Lite)</td>
+          <td>2MC</td>
+          <td>TC</td>
+          <td>TC (Lite)</td>
+          <td>2MC</td>
+          <td>TC</td>
+          <td>TC (Lite)</td>
+          <td>2MC</td>
+        </tr>
+        <tr>
+          <td>agnews</td>
+          <td>$3.32</td>
+          <td>$0.58</td>
+          <td>$0.12</td>
+          <td>6,173.87 (27.0 × \times )</td>
+          <td>1,080.54 (4.7 × \times )</td>
+          <td>228.57</td>
+          <td>$28.07 (0.75 × \times )</td>
+          <td>$29.83 (0.79 × \times )</td>
+          <td>$37.62</td>
+        </tr>
+        <tr>
+          <td>court</td>
+          <td>$29.51</td>
+          <td>$7.59</td>
+          <td>$2.70</td>
+          <td>2,615.32 (10.0 × \times )</td>
+          <td>680.85 (2.6 × \times )</td>
+          <td>262.14</td>
+          <td>$2,558.51 (0.73 × \times )</td>
+          <td>$2,677.09 (0.76 × \times )</td>
+          <td>$3,515.20</td>
+        </tr>
+        <tr>
+          <td>enron</td>
+          <td>$13.78</td>
+          <td>$3.38</td>
+          <td>$1.15</td>
+          <td>1,757.40 (10.9 × \times )</td>
+          <td>431.84 (2.7 × \times )</td>
+          <td>160.56</td>
+          <td>$97.65 (0.13 × \times )</td>
+          <td>$110.13 (0.14 × \times )</td>
+          <td>$763.65</td>
+        </tr>
+        <tr>
+          <td>fever</td>
+          <td>$39.52</td>
+          <td>$10.27</td>
+          <td>$3.69</td>
+          <td>2,513.60 (10.4 × \times )</td>
+          <td>656.72 (2.7 × \times )</td>
+          <td>241.77</td>
+          <td>$579.52 (0.58 × \times )</td>
+          <td>$640.27 (0.64 × \times )</td>
+          <td>$1,003.69</td>
+        </tr>
+        <tr>
+          <td>games</td>
+          <td>$10.92</td>
+          <td>$2.61</td>
+          <td>$0.87</td>
+          <td>3,831.92 (12.9 × \times )</td>
+          <td>808.24 (2.7 × \times )</td>
+          <td>296.17</td>
+          <td>$1,073.67 (1.10 × \times )</td>
+          <td>$685.11 (0.70 × \times )</td>
+          <td>$975.87</td>
+        </tr>
+        <tr>
+          <td>legal</td>
+          <td>$45.22</td>
+          <td>$11.89</td>
+          <td>$4.30</td>
+          <td>1,745.22 (7.9 × \times )</td>
+          <td>482.16 (2.2 × \times )</td>
+          <td>222.09</td>
+          <td>$1,748.54 (0.28 × \times )</td>
+          <td>$2,598.41 (0.41 × \times )</td>
+          <td>$6,312.89</td>
+        </tr>
+        <tr>
+          <td>pubmed</td>
+          <td>$25.22</td>
+          <td>$6.44</td>
+          <td>$2.28</td>
+          <td>2,557.29 (10.9 × \times )</td>
+          <td>653.78 (2.8 × \times )</td>
+          <td>233.85</td>
+          <td>$613.22 (0.87 × \times )</td>
+          <td>$608.44 (0.87 × \times )</td>
+          <td>$702.28</td>
+        </tr>
+        <tr>
+          <td>wiki_talk</td>
+          <td>$9.49</td>
+          <td>$2.23</td>
+          <td>$0.72</td>
+          <td>2,687.62 (12.9 × \times )</td>
+          <td>632.54 (3.0 × \times )</td>
+          <td>208.70</td>
+          <td>$153.49 (0.68 × \times )</td>
+          <td>$155.23 (0.69 × \times )</td>
+          <td>$225.72</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Shows optimization costs ($3-$45 for TC, $0.58-$11.89 for TC Lite), break-even points (680-6174 documents for TC vs 160-296 for 2MC), and estimated total cost at 1M documents. At production scale, <strong>TC is cheaper than 2MC on 7/8 workloads</strong> (0.13×-0.87× ratio).</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 5
+      <span class="src">Table 5</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Latency measurements for optimization and inference</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Optimization (s)</th>
+          <th>Inf. @ ∼ \sim 1K docs (s)</th>
+          <th>Est. Inf. @ 1M docs (h)</th>
+        </tr>
+        <tr>
+          <td>2MC</td>
+          <td>64.93 ± \pm 57.60</td>
+          <td>280.64 ± \pm 291.36</td>
+          <td>3.0 3.0 ± \pm 0.1 0.1</td>
+        </tr>
+        <tr>
+          <td>TC</td>
+          <td>911.45 ± \pm 381.23</td>
+          <td>201.19 ± \pm 149.03</td>
+          <td>2.2 2.2 ± \pm 0.0 0.0</td>
+        </tr>
+        <tr>
+          <td>TC (Lite)</td>
+          <td>1253.0 ± \pm 947.3</td>
+          <td>175.4 ± \pm 90.6</td>
+          <td>1.9 1.9 ± \pm 0.0 0.0</td>
+        </tr>
+        <tr>
+          <td>Oracle Only</td>
+          <td>–</td>
+          <td>26.14 ± \pm 56.80</td>
+          <td>0.3 0.3 ± \pm 0.0 0.0</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Shows optimization takes ~911s for TC vs ~65s for 2MC, but inference at ~1K docs is faster for TC (201s vs 281s). At 1M docs, estimated inference latency is <strong>2.2h for TC vs 3.0h for 2MC</strong>, showing task cascades are also faster at scale.</p>
+    </details>
+  </div>
+</div>
+
+<!-- EXPERIMENTAL SETUP -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">E</span> Experimental Setup</div>
+
+  <div class="card">
+    <div class="card-title">Datasets (8)</div>
+    <table>
+      <tr><th>Dataset</th><th>Domain</th><th>Size</th><th>Source</th></tr>
+      <tr>
+        <td>agnews</td>
+        <td>News classification</td>
+        <td class="num">~128k docs (1k sampled)</td>
+        <td><span class="src">Table 2, Section 7.1.1</span></td>
+      </tr>
+      <tr>
+        <td>court</td>
+        <td>Legal</td>
+        <td class="num">~36k docs (1k sampled)</td>
+        <td><span class="src">Table 2, Section 7.1.1</span></td>
+      </tr>
+      <tr>
+        <td>enron</td>
+        <td>Email classification</td>
+        <td class="num">~500k docs (1k sampled)</td>
+        <td><span class="src">Table 2, Section 7.1.1</span></td>
+      </tr>
+      <tr>
+        <td>fever</td>
+        <td>Fact verification</td>
+        <td class="num">~185k docs (1k sampled)</td>
+        <td><span class="src">Table 2, Section 7.1.1</span></td>
+      </tr>
+      <tr>
+        <td>games</td>
+        <td>Game reviews</td>
+        <td class="num">~6.4M docs (1k sampled)</td>
+        <td><span class="src">Table 2, Section 7.1.1</span></td>
+      </tr>
+      <tr>
+        <td>legal</td>
+        <td>Legal contracts</td>
+        <td class="num">510 docs (509 used: 150 dev, 359 test)</td>
+        <td><span class="src">Table 2, Section 7.1.1</span></td>
+      </tr>
+      <tr>
+        <td>pubmed</td>
+        <td>Biomedical</td>
+        <td class="num">~133k docs (1k sampled)</td>
+        <td><span class="src">Table 2, Section 7.1.1</span></td>
+      </tr>
+      <tr>
+        <td>wiki_talk</td>
+        <td>Online discourse</td>
+        <td class="num">~125k docs (1k sampled)</td>
+        <td><span class="src">Table 2, Section 7.1.1</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Baselines (4)</div>
+    <div class="cmp">
+      <span class="cmp-label">Oracle Only</span>
+      <span class="cmp-val">Runs the oracle model (GPT-4o) on every document with the full document and original operation. Provides the ideal accuracy upper bound but highest cost. <span class="src">Section 7.1.2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">2-Model Cascade</span>
+      <span class="cmp-val">Standard &lt;strong&gt;model cascade&lt;/strong&gt; from Patel et al. (2025), using GPT-4o-mini as proxy and GPT-4o as oracle. Uses token-level log probabilities. Per-class thresholds set on development set to minimize cost while meeting accuracy target. <span class="src">Section 7.1.2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">2-Model Cascade (+ Guarantees)</span>
+      <span class="cmp-val">Augments 2-Model Cascade with the same &lt;strong&gt;statistical guarantee procedure&lt;/strong&gt; (Algorithm 3) used by Task Cascades, for controlled comparison. <span class="src">Section 7.1.2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">LOTUS (+ Guarantees)</span>
+      <span class="cmp-val">From Patel et al. (2025), embeds model cascades inside filter operators with guarantees on &lt;strong&gt;precision and recall&lt;/strong&gt; rather than overall accuracy. Only supports binary classification. Evaluated across combinations of precision/recall targets in {0.60, 0.80, 0.90, 0.95}². <span class="src">Section 7.1.2</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key Results</div>
+    <table>
+      <tr><th>Description</th><th>Metric</th><th>Value</th><th>Source</th></tr>
+      <tr>
+        <td><strong>Task Cascades (+G)</strong> reduces inference cost by <strong>48.5%</strong> on average compared to <strong>2-Model Cascade (+G)</strong> across all workloads at 90% target accuracy (0.52× average cost ratio).</td>
+        <td>Cost Ratio</td>
+        <td class="num ">0.52×</td>
+        <td><span class="src">Table 3, Section 7.2.1</span></td>
+      </tr>
+      <tr>
+        <td><strong>Task Cascades</strong> reduces inference cost by <strong>86.2%</strong> compared to <strong>Oracle Only</strong> across all workloads at 90% target accuracy.</td>
+        <td>Cost Ratio</td>
+        <td class="num ">86.2% reduction</td>
+        <td><span class="src">Section 7, abstract</span></td>
+      </tr>
+      <tr>
+        <td>On <strong>enron</strong>, Task Cascades (+G) achieves <strong>0.09×</strong> the cost of 2-Model Cascade (+G), a roughly <strong>11× cost reduction</strong>, the largest savings across all workloads.</td>
+        <td>Cost Ratio</td>
+        <td class="num ">0.09×</td>
+        <td><span class="src">Table 3</span></td>
+      </tr>
+      <tr>
+        <td><strong>Task Cascades (Lite)</strong> achieves nearly identical savings to full Task Cascades (<strong>0.62×</strong> vs <strong>0.59×</strong> average cost ratio) while requiring <strong>75% less optimization investment</strong>.</td>
+        <td>Cost Ratio</td>
+        <td class="num ">0.62×</td>
+        <td><span class="src">Table 3, Section 7.2.1</span></td>
+      </tr>
+      <tr>
+        <td><strong>No Filtering</strong> variant (disabling document pruning) increases average cost to <strong>1.55×</strong> of 2-Model Cascade, demonstrating that document restructuring is critical for cost savings.</td>
+        <td>Cost Ratio</td>
+        <td class="num ">1.55×</td>
+        <td><span class="src">Table 3</span></td>
+      </tr>
+      <tr>
+        <td><strong>No Surrogates</strong> variant (only original operation at different fractions) achieves <strong>1.21×</strong> average cost, showing surrogate operations provide substantial additional savings beyond document pruning alone.</td>
+        <td>Cost Ratio</td>
+        <td class="num ">1.21×</td>
+        <td><span class="src">Table 3</span></td>
+      </tr>
+      <tr>
+        <td><strong>Selectivity Ordering</strong> (predicate ordering heuristic) performs poorly at <strong>4.44×</strong> average cost, validating the greedy cascade assembly approach.</td>
+        <td>Cost Ratio</td>
+        <td class="num ">4.44×</td>
+        <td><span class="src">Table 3</span></td>
+      </tr>
+      <tr>
+        <td>At <strong>1M documents</strong>, Task Cascades estimated total cost (optimization + inference) is <strong>0.13×</strong> of 2-Model Cascade on enron ($97.65 vs $763.65) and <strong>0.28×</strong> on legal ($1,748.54 vs $6,312.89).</td>
+        <td>Estimated Total Cost @ 1M Docs</td>
+        <td class="num ">0.13× to 0.87×</td>
+        <td><span class="src">Table 4</span></td>
+      </tr>
+      <tr>
+        <td>Task Cascades (+G) misses the 90% accuracy target on only <strong>1 of 8</strong> workloads (games at 89.2%), while 2-Model Cascade misses on <strong>3 of 8</strong> workloads.</td>
+        <td>Accuracy target compliance</td>
+        <td class="num ">7/8 workloads meet target</td>
+        <td><span class="src">Table 3, Section 7.2.1</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Metrics</div>
+    <div class="cmp">
+      <span class="cmp-label">Inference Cost</span>
+      <span class="cmp-val">Total cost in USD for processing all test documents through the cascade, computed using OpenAI API pricing ($2.50/1M input tokens for GPT-4o, $0.15/1M for GPT-4o-mini, 50% prefix cache discount). <span class="src">Section 7.1.4</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Accuracy</span>
+      <span class="cmp-val">Fraction of documents where the cascade&#39;s prediction matches the oracle model&#39;s prediction on the full document with the original operation. <span class="src">Section 2.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Cost Ratio</span>
+      <span class="cmp-val">Cost of the method relative to the corresponding 2-Model Cascade variant (plain or +G). <span class="src">Table 3</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Break-Even Documents</span>
+      <span class="cmp-val">Number of inference documents that must be processed before total cost (optimization + inference) becomes lower than Oracle Only. <span class="src">Table 4</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Experimental Settings</div>
+    <div class="cmp"><span class="cmp-label">Oracle Model</span><span class="cmp-val">GPT-4o</span></div>
+    <div class="cmp"><span class="cmp-label">Proxy Models</span><span class="cmp-val">GPT-4o-mini</span></div>
+    <div class="cmp"><span class="cmp-label">Hardware</span><span class="cmp-val">2024 MacBook Air (M4 chip) with OpenAI API calls</span></div>
+    <div class="cmp"><span class="cmp-label">Accuracy Target</span><span class="cmp-val">α = 0.90 (default), varied from 0.75 to 0.95</span></div>
+  </div>
+</div>
+
+<!-- ANALYSIS (Level 2 only) -->
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Documents are processed independently (row-by-row), and the development set is i.i.d. representative of the full document collection.
+          <span class="src">Section 2.1, Section 3.2.3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">The oracle model (GPT-4o) provides the ground truth labels; accuracy is measured relative to the oracle, not human annotations.
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">LLM APIs support prefix caching with a 50% discount on cached tokens, and documents are placed before operations in prompts to maximize cache utilization.
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">The output space is a fixed set of classes (classification setting). Extension to open-ended generation requires a reliable automatic evaluator.
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">LLM token-level log-probabilities are available and can be used as confidence scores.
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">A two-model setting (one proxy, one oracle) is sufficient; the framework generalizes to more models but experiments use only two.
+          <span class="src">Section 2.2</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">Higher optimization cost than model cascades: Task Cascades requires ~10× more break-even documents (e.g., ~2,600 vs ~260 for court) before becoming cheaper than Oracle Only.
+          <span class="src">Table 4, Section 7.2.4</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">Both Task Cascades and model cascades exhibit <strong>high variance</strong> across runs due to LLM non-determinism and small development sets.
+          <span class="src">Section 7.2.3, Figure 4</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">On some workloads (e.g., games), Task Cascades (+G) misses the 90% accuracy target (89.2%), and on pubmed, Task Cascades (+G) costs more than the baseline (1.23×).
+          <span class="src">Table 3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The approach is currently limited to classification tasks with fixed output classes. Extension to open-ended generation requires reliable automatic evaluators.
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The development set must be large enough (at least 75 documents per split) for statistical guarantees to be achievable.
+          <span class="src">Section 3.2.3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">Surrogate operations generated by the LLM agent may not always be effective for cheaper models; the iterative refinement helps but does not guarantee optimal surrogates.
+          <span class="src">Section 1, Section 5</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#4a2d7a">X</span> Cross-Reference with Anchor Papers</div>
+    <div class="card">
+      <table>
+        <tr><th>Anchor Paper</th><th>Relationship</th><th>Detail</th><th>Source</th></tr>
+        <tr>
+          <td>lotus</td>
+          <td>Shared Baseline</td>
+          <td>&lt;strong&gt;LOTUS&lt;/strong&gt; (Patel et al., 2025) is used as a baseline in Q2 experiments. LOTUS embeds model cascades inside filter operators with guarantees on precision and recall rather than overall accuracy. Task Cascades uses the same 2-Model Cascade approach from LOTUS as its primary baseline. The paper also uses LOTUS&#39;s sem_filter operator for comparison across precision/recall target combinations.</td>
+          <td><span class="src">Section 7.1.2, Figure 5</span></td>
+        </tr>
+        <tr>
+          <td>csv</td>
+          <td>Complements</td>
+          <td>Both papers address cost reduction for LLM-based data processing with accuracy guarantees. Task Cascades focuses on varying operations and document fractions in addition to models, while &lt;strong&gt;CSV&lt;/strong&gt; focuses on cost-effective selection with guarantees. Both use confidence thresholds and statistical bounds.</td>
+          <td><span class="src">Section 8</span></td>
+        </tr>
+        <tr>
+          <td>task_cascades</td>
+          <td>Extends</td>
+          <td>This IS the task_cascades paper. It extends the standard &lt;strong&gt;model cascade&lt;/strong&gt; framework by introducing three additional dimensions of variation: surrogate operations, document fractions, and learned document restructuring.</td>
+          <td><span class="src">Section 1</span></td>
+        </tr>
+        <tr>
+          <td>bargain</td>
+          <td>Complements</td>
+          <td>Both papers optimize LLM-based semantic filtering/classification with proxy-oracle cascades. Task Cascades introduces surrogate operations and document pruning as additional optimization dimensions beyond model selection. Both use confidence-based routing.</td>
+          <td><span class="src">Section 1, Section 8</span></td>
+        </tr>
+        <tr>
+          <td>scaledoc</td>
+          <td>Complements</td>
+          <td>Both papers address scaling LLM-based predicates over large document collections. Task Cascades focuses on cost reduction through task variation, while ScaleDoc focuses on scaling strategies for document-level predicates.</td>
+          <td><span class="src">Section 8</span></td>
+        </tr>
+        <tr>
+          <td>nirvana</td>
+          <td>Complements</td>
+          <td>Both papers deal with semantic-aware processing of unstructured data. Task Cascades focuses specifically on classification operations with cost optimization, while Nirvana addresses broader multi-modal analytics.</td>
+          <td><span class="src">Section 8</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Deep Paper Review — Research Paper Toolkit v0.1</p>
+  <p>Extraction date: 2026-03-30 | Level 2 | <span class="src">source tags</span> indicate extraction provenance</p>
+  <p style="margin-top:0.5rem"><span class="src src-missing">orange tags</span> = information not found, needs verification</p>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Deep Review — LOTUS: Enabling Semantic Queries with LLMs Over Tables of Unstructured and Structured Data</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --border: #e8e6e1; --text: #1a1a1a;
+  --muted: #6b6860; --accent: #2d5a27; --accent-bg: #eef4ed; --accent-border: #c2d9bf;
+  --warn: #8b5e00; --warn-bg: #fef7ec; --warn-border: #f0d9a0;
+  --danger: #8b1a1a; --danger-bg: #fdf0f0;
+  --blue: #1a4f8b; --blue-bg: #edf3fb; --blue-border: #b8d0eb;
+  --purple: #4a2d7a; --purple-bg: #f3eff8;
+  --radius: 6px; --font: 'DM Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif; --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.paper-header { margin-bottom: 2rem; }
+.paper-header h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 500; }
+.badge-venue { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.badge-year { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-level { background: var(--purple-bg); color: var(--purple); border: 1px solid #d4c8e8; }
+.authors { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.25rem; }
+.authors strong { color: var(--text); font-weight: 500; }
+.institution { font-size: 0.8rem; color: var(--muted); }
+.links { margin-top: 0.5rem; display: flex; gap: 0.75rem; }
+.links a { font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; }
+.links a:hover { text-decoration: underline; }
+.section { margin-bottom: 1.5rem; }
+.section-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.section-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: white; flex-shrink: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+.card-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.src { display: inline-block; font-size: 0.65rem; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; background: #f0eeea; color: var(--muted); margin-left: 4px; cursor: help; border: 1px solid var(--border); }
+.src-missing { background: var(--danger-bg); color: var(--danger); border-color: #e8c0c0; }
+.framework-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+@media (max-width: 600px) { .framework-grid { grid-template-columns: 1fr; } }
+.fw-cell { padding: 0.75rem; border-radius: var(--radius); border-left: 3px solid; }
+.fw-cell h4 { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.fw-cell p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.fw-1 { background: #f0f7ff; border-color: #3b82f6; } .fw-1 h4 { color: #1e40af; }
+.fw-2 { background: #fef7f0; border-color: #f59e0b; } .fw-2 h4 { color: #92400e; }
+.fw-3 { background: #f0fdf4; border-color: #22c55e; } .fw-3 h4 { color: #166534; }
+.fw-4 { background: #fdf2f8; border-color: #ec4899; } .fw-4 h4 { color: #9d174d; }
+.fw-5 { background: #f5f3ff; border-color: #8b5cf6; } .fw-5 h4 { color: #5b21b6; }
+.fw-6 { background: #fffbeb; border-color: #eab308; } .fw-6 h4 { color: #854d0e; }
+.fw-7 { background: #fef2f2; border-color: #ef4444; } .fw-7 h4 { color: #991b1b; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.75rem; background: #f5f4f0; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf9f6; }
+.num { font-family: var(--mono); font-size: 0.8rem; }
+.best { font-weight: 600; color: var(--accent); }
+details { margin-bottom: 0.5rem; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius); }
+details summary:hover { background: #f5f4f0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.callout { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.75rem; font-size: 0.85rem; line-height: 1.6; }
+.callout-insight { background: var(--accent-bg); border: 1px solid var(--accent-border); }
+.callout-caution { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+.callout-label { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; display: block; }
+.callout-insight .callout-label { color: var(--accent); }
+.callout-caution .callout-label { color: var(--warn); }
+.cmp { display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.25rem; font-size: 0.82rem; }
+.cmp-label { font-weight: 500; min-width: 100px; flex-shrink: 0; }
+.cmp-val { color: var(--muted); }
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+/* Emphasis for key terms and values */
+.card strong, .fw-cell strong, .cmp-val strong { color: var(--text); font-weight: 600; }
+.key-value { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+
+/* Formula blocks */
+.formula-card { background: #f8f7f4; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+.formula-card .formula-id { font-family: var(--mono); font-size: 0.75rem; color: var(--blue); font-weight: 600; }
+.formula-card .formula-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.25rem; }
+.formula-card .formula-latex { font-size: 1rem; margin: 0.5rem 0; }
+
+/* Table rendering within key tables */
+.card table { margin-top: 0.5rem; }
+.card table td { font-family: var(--mono); font-size: 0.78rem; }
+
+/* Figure cards */
+.figure-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; margin-bottom: 0.5rem; }
+.figure-card img { max-width: 100%; border-radius: 4px; margin-bottom: 0.5rem; }
+.figure-card .fig-caption { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+.figure-card .fig-id { font-weight: 600; font-size: 0.82rem; margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="paper-header">
+  <h1>LOTUS: Enabling Semantic Queries with LLMs Over Tables of Unstructured and Structured Data</h1>
+  <div class="meta-row">
+    <span class="badge badge-venue">arXiv preprint</span>
+    <span class="badge badge-year">2024</span>
+    <span class="badge badge-level">Level 2 Review</span>
+  </div>
+  <div class="authors">
+    Liana Patel,     Siddharth Jha,     Carlos Guestrin,     Matei Zaharia  </div>
+  <div class="institution">Stanford University, UC Berkeley</div>
+  <div class="links">
+    <a href="https://arxiv.org/abs/2407.11418">arXiv</a>
+    <a href="https://arxiv.org/pdf/2407.11418.pdf">PDF</a>
+    <a href="https://github.com/stanford-futuredata/lotus">Code</a>
+  </div>
+</div>
+
+<!-- CORE CONTRIBUTION -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">S</span> Core Contribution</div>
+  <div class="card">
+    <p style="font-size:0.9rem">The paper introduces <strong>semantic operators</strong>, a declarative programming interface that extends the relational model with composable AI-based operations (filter, join, topk, aggregation, map, extract, search, cluster) parameterized by <strong>natural language expressions (langex)</strong>. These operators are implemented in <strong>LOTUS</strong>, an open-source query engine with a Pandas-like API that provides multiple algorithms and optimizations per operator, including <strong>model cascades</strong> with log-probability-based scoring, <strong>semantic index-based optimizations</strong>, and approximate join algorithms (map-search-filter, search-filter patterns).
+      <span class="src">Section 1, Section 2, Section 3</span>
+    </p>
+  </div>
+</div>
+
+<!-- FRAMEWORK MAPPING (Level 2 only) -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Mapping to Dr. Lan&#39;s 7-Layer Semantic Filter Framework</div>
+  <div class="framework-grid">
+    <div class="fw-cell fw-1">
+      <h4>1. Data Representation Layer</h4>
+      <p>LOTUS extends the relational model with tables containing both structured data columns and <strong>unstructured free-form natural-language text</strong> columns. Semantic similarity indices (embeddings via FAISS) can be created over text columns to enable efficient semantic query processing. The data model uses a <strong>Pandas DataFrame</strong> representation.
+        <span class="src">Section 2.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-2">
+      <h4>2. Candidate Executor / Proxy Layer</h4>
+      <p>LOTUS supports configuring multiple LMs (e.g., <strong>TinyLlama/Llama-8B as proxy</strong>, <strong>Llama-70B/GPT-4o as oracle</strong>) for model cascades. Embedding models (e.g., <strong>E5Model</strong>, <strong>ColBERT</strong>) serve as lightweight retrieval proxies for similarity-based operations. Cross-encoder re-rankers (e.g., <strong>MixedBread</strong>) provide intermediate-cost executors.
+        <span class="src">Section 3.1.1, Section 4</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-3">
+      <h4>3. Unit of Decision Layer</h4>
+      <p>The unit of decision varies by operator: <strong>sem_filter</strong> and <strong>sem_map</strong> operate per-row; <strong>sem_join</strong> evaluates per-pair of rows; <strong>sem_topk</strong> performs pairwise comparisons between document pairs; <strong>sem_agg</strong> reasons over groups of rows. Each operator defines its own granularity of LM invocation.
+        <span class="src">Section 2.2, Section 3</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-4">
+      <h4>4. Predicate Transformation Layer</h4>
+      <p>User-specified <strong>langex</strong> expressions are automatically wrapped in <strong>operator-specific instruction prompts</strong> managed by the system (e.g., the filter prompt instructs the model to output 'True' or 'False'). The system handles prompt construction transparently and can leverage <strong>prompt optimization techniques</strong> (e.g., DSPy). Demonstrations can be optionally provided.
+        <span class="src">Section 2.1.2, Section 3.1 (Figure 17)</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-5">
+      <h4>5. Calibration / Sampling Layer</h4>
+      <p>For model cascades in <strong>sem_filter</strong> and <strong>sem_topk</strong>, LOTUS computes confidence scores by <strong>exponentiating the log-probabilities</strong> of the output tokens corresponding to True/False labels. A user-defined <strong>confidence threshold</strong> determines which records are routed to the oracle model. This is a lightweight, operator-semantics-aware scoring function.
+        <span class="src">Section 3.1.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-6">
+      <h4>6. Routing / Action Layer</h4>
+      <p>Records with confidence below the threshold are <strong>routed from the proxy to the oracle LM</strong>. For joins, the system selects among <strong>nested-loop, map-search-filter, or search-filter</strong> algorithms based on table size and user-specified LM call budget. For topk, the system chooses among <strong>quickselect, heap, or quadratic</strong> algorithms. Semantic index optimizations are applied when correlation exists between embeddings and the ranking criteria.
+        <span class="src">Section 3.1.1, Section 3.2, Section 3.3</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-7">
+      <h4>7. Guarantee Layer</h4>
+      <p>LOTUS does not provide formal accuracy or recall guarantees. The system relies on <strong>empirical evaluation</strong> across applications to demonstrate quality. Approximate join algorithms trade off completeness for efficiency. The confidence threshold in cascades is user-specified without formal bounds on accuracy loss.
+        <span class="src">Section 4</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- METHOD COMPONENTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#2d5a27">M</span> Method Components</div>
+  <div class="card">
+    <details open>
+      <summary>Semantic Operators</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A set of <strong>declarative operators</strong> (sem_filter, sem_join, sem_sim_join, sem_agg, sem_topk, sem_map, sem_extract, sem_cluster_by, sem_search, sem_index) that extend the relational model with AI-based operations. Each operator takes a <strong>parameterized natural language expression (langex)</strong> that specifies the semantic operation (predicate, comparator, aggregation, or projection) in natural language.
+        <span class="src">Section 2, Table 1</span>
+      </p>
+    </details>
+    <details>
+      <summary>Model Cascade Optimization for sem_filter</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Uses a <strong>lightweight scoring function</strong> based on <strong>exponentiated log-probabilities</strong> of the True/False output tokens from a cheap proxy LM. Records with confidence below a user-defined threshold are routed to a larger oracle LM. This avoids the overhead of fine-tuning a separate scorer or re-sampling from the proxy model.
+        <span class="src">Section 3.1.1</span>
+      </p>
+    </details>
+    <details>
+      <summary>QuickSelect-based sem_topk Algorithm</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Implements <strong>pairwise LM-based comparisons</strong> aggregated via a <strong>quick-select-based top-k ranking algorithm</strong>. Each round selects a pivot, compares all remaining elements to the pivot in a fully parallelizable batch, then recurses. This provides high accuracy with at least an order of magnitude fewer LM calls than quadratic sorting and more batching opportunities than heap-based approaches.
+        <span class="src">Section 3.2.1, Section 3.2.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Semantic Index-based Pivot Selection</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">For sem_topk, LOTUS can leverage the <strong>semantic similarity index</strong> to optimize pivot selection by sorting documents based on embedding distances and selecting the <strong>(k+ε)-th item</strong> as the first pivot, reducing subsequent LM comparisons when correlation exists between semantic similarity and the user's ranking criteria.
+        <span class="src">Section 3.2.3</span>
+      </p>
+    </details>
+    <details>
+      <summary>Approximate Semantic Join Algorithms</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Three join patterns: (1) <strong>nested-loop join</strong> with batched LM processing (O(N1·N2) calls), (2) <strong>map-search-filter</strong> pattern that first performs an LM projection over the left key, then similarity search, then filter (O(N1·K) calls), and (3) <strong>search-filter</strong> pattern that performs similarity join then filter (O(N1·K) calls). The approximate patterns reduce LM calls by up to <strong>800×</strong> compared to naive join.
+        <span class="src">Section 3.3.1</span>
+      </p>
+    </details>
+    <details>
+      <summary>Hierarchical Reduce Aggregation</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">For sem_agg, LOTUS implements a <strong>hierarchical reduce pattern</strong> that recursively aggregates input data to produce partial answers until a single answer remains, allowing greater parallelism. Users can override with <strong>sem_partition_by</strong> to specify custom groupings (e.g., semantic clustering) for improved aggregation quality.
+        <span class="src">Section 3.4</span>
+      </p>
+    </details>
+    <details>
+      <summary>Parameterized Natural Language Expressions (langex)</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A core abstraction where users write <strong>natural language expressions parameterized by data columns</strong> (indicated in double brackets). The langex function varies by operator (predicate for filter, comparator for topk, aggregation for agg, projection for map). This separates the logical query plan from its implementation.
+        <span class="src">Section 2.1.2</span>
+      </p>
+    </details>
+  </div>
+</div>
+
+<!-- THEORETICAL RESULTS -->
+
+<!-- KEY FORMULAS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">Q</span> Key Formulas</div>
+  <div class="formula-card">
+    <span class="formula-id">Join complexity (nested-loop)</span>
+    <span class="src">Section 3.3.1</span>
+    <div class="formula-latex">\[O(N_1 \cdot N_2)\]</div>
+    <div class="formula-desc">LM call complexity for the naive nested-loop semantic join algorithm</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Join complexity (approximate)</span>
+    <span class="src">Section 3.3.1</span>
+    <div class="formula-latex">\[O(N_1 \cdot K)\]</div>
+    <div class="formula-desc">LM call complexity for the map-search-filter and search-filter approximate join algorithms, where K is set by the user&#39;s LM call budget</div>
+  </div>
+</div>
+
+<!-- KEY FIGURES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">G</span> Key Figures</div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 1
+      <span class="src">Figure 1</span>
+    </div>
+    <div class="fig-caption"><strong>Caption:</strong> Accuracy versus execution time (log-scale) for 3 short LOTUS programs for fact-checking on FEVER</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows three LOTUS programs (A=fact-join, B=fact-filter, C=FacTool reproduction) plotted against FacTool baseline. Demonstrates that LOTUS programs achieve higher accuracy with lower execution time, and that optimizations (cascades) further improve the best program. Key takeaway: declarative composition enables rapid exploration of the design space.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 27
+      <span class="src">Figure 27</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2407.11418/assets/x2.png" alt="Figure 27" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Accuracy versus execution time for LOTUS-fact-filter with and without cascades on FEVER</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows single-model performance (circles for TinyLlama, Llama-8B, Llama-70B) versus cascade performance (stars) with varying confidence thresholds. Demonstrates that cascades provide diverse accuracy-efficiency trade-offs, substantially reducing execution time while maintaining or improving accuracy compared to oracle-only execution.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 33
+      <span class="src">Figure 33</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2407.11418/assets/x3.png" alt="Figure 33" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Accuracy versus execution time on HellaSwag-bench for semantic top-k with and without cascades</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows cascade optimization for the ranking operator, demonstrating that combining Llama-8B and Llama-70B with varying confidence thresholds provides a Pareto frontier of accuracy-efficiency trade-offs for the top-k ranking task.</div>
+  </div>
+</div>
+
+<!-- KEY TABLES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">B</span> Key Tables</div>
+  <div class="card">
+    <div class="card-title">Table 1
+      <span class="src">Table 1</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Summary of Semantic Operators</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Operator</th>
+          <th>Description</th>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑓𝑖𝑙𝑡𝑒𝑟 ​ ( l ​ : ​ X → 𝐵𝑜𝑜𝑙 ) 𝑠𝑒𝑚 _ 𝑓𝑖𝑙𝑡𝑒𝑟 → 𝑙 : 𝑋 𝐵𝑜𝑜𝑙 \mathit{sem\_filter}(l\textit{: }X\rightarrow\mathit{Bool})</td>
+          <td>Returns the tuples in a table that pass the provided langex predicate.</td>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑗𝑜𝑖𝑛 ​ ( t ​ : ​ T ​ , ​ l ​ : ​ ( X , Y ) → 𝐵𝑜𝑜𝑙 ) 𝑠𝑒𝑚 _ 𝑗𝑜𝑖𝑛 → 𝑡 : 𝑇 , 𝑙 : 𝑋 𝑌 𝐵𝑜𝑜𝑙 \mathit{sem\_join}(t\textit{: }T{\textit{, }{l}}\textit{: }(X,Y)\rightarrow\mathit{Bool})</td>
+          <td>Joins a table against a second table t 𝑡 t by keeping all pairs of tuples that pass the provided langex predicate.</td>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑠𝑖𝑚 ​ _ ​ 𝑗𝑜𝑖𝑛 ​ ( t ​ : ​ T ​ , ​ a 1 ​ : ​ A 1 ​ , ​ a 2 ​ : ​ A 2 ​ , ​ k ​ : ​ 𝑖𝑛𝑡 ) 𝑠𝑒𝑚 _ 𝑠𝑖𝑚 _ 𝑗𝑜𝑖𝑛 𝑡 : 𝑇 , subscript 𝑎 1 : subscript 𝐴 1 , subscript 𝑎 2 : subscript 𝐴 2 , 𝑘 : 𝑖𝑛𝑡 \mathit{sem\_sim\_join}(t\textit{: }T{\textit{, }{a}}_{1}\textit{: }A_{1}{\textit{, }{a}}_{2}\textit{: }A_{2}{\textit{, }{k}}\textit{: }\mathit{int})</td>
+          <td>Performs a similarity join where each row of the source table is joined with the k 𝑘 k most semantically similar tuples from the table t 𝑡 t , using fields a 1 subscript 𝑎 1 a_{1} and a 2 subscript 𝑎 2 a_{2} as the left and right join keys, respectively.</td>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑎𝑔𝑔 ​ ( l ​ : ​ L ​ [ X ] → X ) 𝑠𝑒𝑚 _ 𝑎𝑔𝑔 → 𝑙 : 𝐿 delimited-[] 𝑋 𝑋 \mathit{sem\_agg}(l\textit{: }L[X]\rightarrow\mathit{X})</td>
+          <td>Performs an aggregation over the input tuples according to the langex, which specifies a commutative, associative aggregation function over a list of tuples.</td>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑡𝑜𝑝𝑘 ​ ( k ​ : ​ i ​ n ​ t ​ , ​ l ​ : ​ L ​ [ X ] → L ​ [ X ] ) 𝑠𝑒𝑚 _ 𝑡𝑜𝑝𝑘 → 𝑘 : 𝑖 𝑛 𝑡 , 𝑙 : 𝐿 delimited-[] 𝑋 𝐿 delimited-[] 𝑋 \mathit{sem\_topk}(k\textit{: }int{\textit{, }{l}}\textit{: }L[X]\rightarrow L[X])</td>
+          <td>Ranks each tuple and returns the k 𝑘 k best according to the langex, which specifies a ranking function that sorts a list of tuples.</td>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑚𝑎𝑝 ​ ( l ​ : ​ X → Y ) 𝑠𝑒𝑚 _ 𝑚𝑎𝑝 → 𝑙 : 𝑋 𝑌 \mathit{sem\_map}(l\textit{: }X\rightarrow Y)</td>
+          <td>Performs a projection, returning a new column, according to the provided langex.</td>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑒𝑥𝑡𝑟𝑎𝑐𝑡 ​ ( l ​ : ​ X → Y ) 𝑠𝑒𝑚 _ 𝑒𝑥𝑡𝑟𝑎𝑐𝑡 → 𝑙 : 𝑋 𝑌 \mathit{sem\_extract}(l\textit{: }X\rightarrow Y)</td>
+          <td>Performs a projection according to the langex, returning a column with a list of substrings from the input tuples.</td>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑐𝑙𝑢𝑠𝑡𝑒𝑟 ​ _ ​ 𝑏𝑦 ​ ( C ​ : ​ 𝑖𝑛𝑡 ​ , ​ a ​ : ​ A ) 𝑠𝑒𝑚 _ 𝑐𝑙𝑢𝑠𝑡𝑒𝑟 _ 𝑏𝑦 𝐶 : 𝑖𝑛𝑡 , 𝑎 : 𝐴 \mathit{sem\_cluster\_by}(C\textit{: }\mathit{int}{\textit{, }{a}}\textit{: }A)</td>
+          <td>Performs a semantic similarity clustering over column a 𝑎 a to create C 𝐶 C groups.</td>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑠𝑒𝑎𝑟𝑐ℎ ​ ( q ​ : ​ 𝑆𝑡𝑟𝑖𝑛𝑔 ​ , ​ k ​ : ​ i ​ n ​ t ​ , ​ a ​ : ​ A ) 𝑠𝑒𝑚 _ 𝑠𝑒𝑎𝑟𝑐ℎ 𝑞 : 𝑆𝑡𝑟𝑖𝑛𝑔 , 𝑘 : 𝑖 𝑛 𝑡 , 𝑎 : 𝐴 \mathit{sem\_search}(q\textit{: }\mathit{String}{\textit{, }{k}}\textit{: }int{\textit{, }{a}}\textit{: }A)</td>
+          <td>Performs a top- k 𝑘 k search over column a 𝑎 a using query q 𝑞 q .</td>
+        </tr>
+        <tr>
+          <td>𝑠𝑒𝑚 ​ _ ​ 𝑖𝑛𝑑𝑒𝑥 ​ ( a ​ : ​ A ​ , ​ 𝑝𝑎𝑡ℎ ​ : ​ 𝑆𝑡𝑟𝑖𝑛𝑔 ) 𝑠𝑒𝑚 _ 𝑖𝑛𝑑𝑒𝑥 𝑎 : 𝐴 , 𝑝𝑎𝑡ℎ : 𝑆𝑡𝑟𝑖𝑛𝑔 \mathit{sem\_index}(a\textit{: }A{\textit{, }{}}\mathit{path}\textit{: }\mathit{String})</td>
+          <td>Creates similarity index for column a 𝑎 a and saves to path.</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Defines all 10 semantic operators with their type signatures and descriptions. Key operators include sem_filter (predicate), sem_join (cross-table predicate), sem_sim_join (similarity-based join), sem_agg (aggregation), sem_topk (ranking), sem_map (projection), sem_extract (substring extraction), sem_cluster_by, sem_search, and sem_index.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 2
+      <span class="src">Table 2</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Fact-checking Results on the FEVER Dataset</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Accuracy</th>
+          <th>Execution Time, batched (s)</th>
+          <th>Execution Time, no batching (s)</th>
+          <th>LoC</th>
+        </tr>
+        <tr>
+          <td>FacTool</td>
+          <td>83.5</td>
+          <td>N/A</td>
+          <td>1,174.8</td>
+          <td>¿ 750</td>
+        </tr>
+        <tr>
+          <td>LOTUS-Factool</td>
+          <td>90.0</td>
+          <td>111.48</td>
+          <td>979.50</td>
+          <td>¡ 50</td>
+        </tr>
+        <tr>
+          <td>LOTUS-fact-filter</td>
+          <td>90.5</td>
+          <td>64.28</td>
+          <td>206.45</td>
+          <td>¡ 50</td>
+        </tr>
+        <tr>
+          <td>LOTUS-fact-filter (+ cascades)</td>
+          <td>93</td>
+          <td>34.09</td>
+          <td>168.24</td>
+          <td>¡ 50</td>
+        </tr>
+        <tr>
+          <td>LOTUS-fact-join</td>
+          <td>86.5</td>
+          <td>2,394.22</td>
+          <td>12,923.08</td>
+          <td>¡ 50</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Compares FacTool vs 4 LOTUS programs. Key takeaway: LOTUS-fact-filter with cascades achieves best accuracy (93%) with lowest batched execution time (34.09s), all in <50 LoC vs >750 for FacTool.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 3
+      <span class="src">Table 3</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Extreme Multi-label Classification Results on BioDEX with Llama-70b</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>RP@5</th>
+          <th>RP@10</th>
+          <th>Execution Time (s)</th>
+          <th># LM Calls</th>
+        </tr>
+        <tr>
+          <td>Semantic Similarity Join</td>
+          <td>0.106</td>
+          <td>0.120</td>
+          <td>2.91</td>
+          <td>0.00</td>
+        </tr>
+        <tr>
+          <td>LOTUS Semantic Join (map-search-filter pattern)</td>
+          <td>0.241</td>
+          <td>0.258</td>
+          <td>2,762</td>
+          <td>7,750</td>
+        </tr>
+        <tr>
+          <td>LOTUS Semantic Join (nested-loop pattern)</td>
+          <td>N/A</td>
+          <td>N/A</td>
+          <td>2,144,560 *</td>
+          <td>6,092,500</td>
+        </tr>
+        <tr>
+          <td>LOTUS Semantic Join (search-filter pattern)</td>
+          <td>0.155</td>
+          <td>0.186</td>
+          <td>2,640</td>
+          <td>7,500</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Compares join algorithms. Map-search-filter achieves best quality (0.241 RP@5) with 800× fewer LM calls than nested-loop. Search-filter is similar in cost but lower quality. Demonstrates the importance of algorithm selection for semantic joins.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 6
+      <span class="src">Table 6</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Comparison of Ranking Results for Different Semantic Top-k Algorithms using Llama-70B</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Scifact</th>
+          <th>CIFAR</th>
+          <th>HellaSwag</th>
+        </tr>
+        <tr>
+          <td>nDCG@10</td>
+          <td>ET (s)</td>
+          <td># LM Calls</td>
+          <td>nDCG@10</td>
+          <td>ET (s)</td>
+          <td># LM Calls</td>
+          <td>nDCG@10</td>
+          <td>ET (s)</td>
+          <td># LM Calls</td>
+        </tr>
+        <tr>
+          <td>Quadratic Sort</td>
+          <td>0.836</td>
+          <td>712</td>
+          <td>4950</td>
+          <td>0.868</td>
+          <td>634</td>
+          <td>4950</td>
+          <td>0.966</td>
+          <td>1,803</td>
+          <td>19,900</td>
+        </tr>
+        <tr>
+          <td>Heap Top-k</td>
+          <td>0.776</td>
+          <td>65.0</td>
+          <td>216</td>
+          <td>0.832</td>
+          <td>99.6</td>
+          <td>350</td>
+          <td>0.907</td>
+          <td>98.9</td>
+          <td>415.2</td>
+        </tr>
+        <tr>
+          <td>QuickSelect Top-k</td>
+          <td>0.776</td>
+          <td>42.4</td>
+          <td>285</td>
+          <td>0.746</td>
+          <td>41.3</td>
+          <td>303.95</td>
+          <td>0.909</td>
+          <td>59.1</td>
+          <td>620.95</td>
+        </tr>
+        <tr>
+          <td>QuickSelect Top-k + Semantic Index</td>
+          <td>0.775</td>
+          <td>33.6</td>
+          <td>229</td>
+          <td>0.710</td>
+          <td>39.6</td>
+          <td>307.7</td>
+          <td>0.975</td>
+          <td>63.6</td>
+          <td>672.7</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Compares quadratic sort, heap top-k, quickselect top-k, and quickselect with semantic index across three datasets. Quadratic sort achieves highest nDCG@10 but requires 4950-19900 LM calls. QuickSelect offers good accuracy-efficiency balance with 229-673 calls. Semantic index optimization helps on some datasets.</p>
+    </details>
+  </div>
+</div>
+
+<!-- EXPERIMENTAL SETUP -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">E</span> Experimental Setup</div>
+
+  <div class="card">
+    <div class="card-title">Datasets (5)</div>
+    <table>
+      <tr><th>Dataset</th><th>Domain</th><th>Size</th><th>Source</th></tr>
+      <tr>
+        <td>FEVER</td>
+        <td>Fact-checking</td>
+        <td class="num">~38,000 claims (500 sampled), 5.5M Wikipedia articles corpus</td>
+        <td><span class="src">Section 4.1.1</span></td>
+      </tr>
+      <tr>
+        <td>BioDEX</td>
+        <td>Biomedical / Extreme multi-label classification</td>
+        <td class="num">65,000 biomedical articles, ~24,000 possible drug-reaction labels, 250 sampled</td>
+        <td><span class="src">Section 4.2.1</span></td>
+      </tr>
+      <tr>
+        <td>SciFact (BEIR)</td>
+        <td>Scientific search and ranking</td>
+        <td class="num">300 sampled scientific facts</td>
+        <td><span class="src">Section 4.3.1</span></td>
+      </tr>
+      <tr>
+        <td>CIFAR-bench</td>
+        <td>Search and ranking (paper abstracts)</td>
+        <td class="num">100 abstracts from Papers with Code</td>
+        <td><span class="src">Section 4.3.1</span></td>
+      </tr>
+      <tr>
+        <td>HellaSwag-bench</td>
+        <td>Search and ranking (synthetic paper abstracts)</td>
+        <td class="num">200 synthetically generated abstracts</td>
+        <td><span class="src">Section 4.3.1</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Baselines (5)</div>
+    <div class="cmp">
+      <span class="cmp-label">FacTool</span>
+      <span class="cmp-val">State-of-the-art multi-step fact-checking pipeline involving claim extraction, query generation, tool querying, evidence collection, and verification. Uses Google Search API or ColBERT for retrieval. Over 750 lines of code. <span class="src">Section 4.1.2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Semantic Similarity Join (retrieval baseline)</span>
+      <span class="cmp-val">Simple retrieval baseline using E5Model for embedding-based semantic similarity join between patient articles and reaction labels, without LM reasoning. <span class="src">Section 4.2.2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Semantic Search</span>
+      <span class="cmp-val">Baseline performing semantic search using E5Model for retrieval only. <span class="src">Section 4.3.2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Semantic Search + Reranker</span>
+      <span class="cmp-val">Baseline performing semantic search with E5Model retrieval followed by MixedBread cross-encoder re-ranking. <span class="src">Section 4.3.2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">D&#39;Oosterlinck et al. (2024) DSPy pipeline</span>
+      <span class="cmp-val">Multi-step DSPy program compiled using Llama-2-7b-chat as student and GPT-3.5-turbo as teacher, with GPT-4 turbo re-ranking for BioDEX extreme multi-label classification. <span class="src">Section 4.2.4</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key Results</div>
+    <table>
+      <tr><th>Description</th><th>Metric</th><th>Value</th><th>Source</th></tr>
+      <tr>
+        <td><strong>LOTUS-fact-filter with cascades</strong> achieves <strong>93% accuracy</strong> on FEVER, a <strong>9.5% improvement</strong> over FacTool (83.5%), with <strong>34× lower execution time</strong> (34.09s batched vs 1,174.8s unbatched FacTool)</td>
+        <td>Accuracy, Execution Time</td>
+        <td class="num ">93% accuracy, 34.09s</td>
+        <td><span class="src">Table 2</span></td>
+      </tr>
+      <tr>
+        <td>LOTUS semantic join (map-search-filter) achieves <strong>0.241 RP@5</strong> and <strong>0.258 RP@10</strong> on BioDEX, <strong>2.27× and 2.15× higher</strong> than semantic similarity join baseline, while running <strong>800× faster</strong> than naive nested-loop join</td>
+        <td>RP@5, RP@10, Execution Time</td>
+        <td class="num ">0.241 RP@5, 0.258 RP@10, 2762s</td>
+        <td><span class="src">Table 3</span></td>
+      </tr>
+      <tr>
+        <td>LOTUS Top-k with GPT-4o achieves <strong>0.800 nDCG@10</strong> on SciFact, <strong>5.9 percentage points higher</strong> than Semantic Search + Reranker (0.741), with execution time of 11.2s</td>
+        <td>nDCG@10</td>
+        <td class="num ">0.800</td>
+        <td><span class="src">Table 4</span></td>
+      </tr>
+      <tr>
+        <td>On CIFAR-bench, LOTUS Top-k achieves <strong>0.746 nDCG@10</strong> vs <strong>0.252</strong> for Semantic Search and <strong>0.001</strong> for Search+Reranker, showing <strong>49.4% improvement</strong> over vanilla retriever</td>
+        <td>nDCG@10</td>
+        <td class="num ">0.746</td>
+        <td><span class="src">Table 5</span></td>
+      </tr>
+      <tr>
+        <td>On HellaSwag-bench, LOTUS Top-k achieves <strong>0.909 nDCG@10</strong> vs <strong>0.461</strong> for Search+Reranker, demonstrating effectiveness on reasoning-based ranking</td>
+        <td>nDCG@10</td>
+        <td class="num ">0.909</td>
+        <td><span class="src">Table 5</span></td>
+      </tr>
+      <tr>
+        <td>QuickSelect Top-k with semantic index achieves comparable nDCG@10 to quadratic sort on SciFact (<strong>0.775 vs 0.836</strong>) while using <strong>21× fewer LM calls</strong> (229 vs 4950) and <strong>21× lower execution time</strong> (33.6s vs 712s)</td>
+        <td>nDCG@10, # LM Calls, Execution Time</td>
+        <td class="num ">0.775 nDCG@10, 229 calls, 33.6s</td>
+        <td><span class="src">Table 6</span></td>
+      </tr>
+      <tr>
+        <td>Map-search-filter join pattern offers <strong>55% higher RP@5</strong> and <strong>38% higher RP@10</strong> than search-filter pattern on BioDEX with similar efficiency</td>
+        <td>RP@5, RP@10</td>
+        <td class="num ">0.241 vs 0.155 RP@5, 0.258 vs 0.186 RP@10</td>
+        <td><span class="src">Table 3</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Metrics</div>
+    <div class="cmp">
+      <span class="cmp-label">Accuracy</span>
+      <span class="cmp-val">Fraction of correctly classified claims (Supported vs Not Supported) for fact-checking <span class="src">Section 4.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Execution Time</span>
+      <span class="cmp-val">Wall-clock time in seconds for query execution, reported both with and without batching for fact-checking <span class="src">Section 4.1, Table 2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">RP@5 (Rank-Precision@5)</span>
+      <span class="cmp-val">Rank-precision at 5 for extreme multi-label classification, following prior work <span class="src">Section 4.2.4</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">RP@10 (Rank-Precision@10)</span>
+      <span class="cmp-val">Rank-precision at 10 for extreme multi-label classification <span class="src">Section 4.2.4</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">nDCG@10</span>
+      <span class="cmp-val">Normalized Discounted Cumulative Gain at rank 10 for search and ranking evaluation <span class="src">Section 4.3</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label"># LM Calls</span>
+      <span class="cmp-val">Total number of language model invocations required by the algorithm <span class="src">Table 3, Table 6</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Lines of Code (LoC)</span>
+      <span class="cmp-val">Estimated lines of code required to implement the pipeline <span class="src">Table 2</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Experimental Settings</div>
+    <div class="cmp"><span class="cmp-label">Oracle Model</span><span class="cmp-val">Llama-70B (Llama 3), GPT-4o</span></div>
+    <div class="cmp"><span class="cmp-label">Proxy Models</span><span class="cmp-val">Llama-8B (Llama 3), TinyLlama, GPT-3.5-turbo</span></div>
+    <div class="cmp"><span class="cmp-label">Hardware</span><span class="cmp-val">4 A100 GPUs, batch size 64, vLLM; 64-way thread parallelism for OpenAI API</span></div>
+    <div class="cmp"><span class="cmp-label">Accuracy Target</span><span class="cmp-val">No fixed target; empirical evaluation</span></div>
+  </div>
+</div>
+
+<!-- ANALYSIS (Level 2 only) -->
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Semantic aggregation langex specifies a commutative and associative aggregation function, enabling hierarchical reduce patterns
+          <span class="src">Section 2.2, Table 1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">For semantic index-based pivot selection in topk, there exists correlation between the rankings imposed by the user's sorting criteria and semantic similarity scores
+          <span class="src">Section 3.2.3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Pairwise LM-based comparisons are effective and robust to input order sensitivity, following prior work
+          <span class="src">Section 3.2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">The search-filter join pattern produces high quality results under positive query correlation between semantic embeddings and the predicate
+          <span class="src">Section 3.3.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Implicit</span>
+        <span class="cmp-val">Log-probabilities of True/False tokens provide reliable confidence scores for cascade routing
+          <span class="src">Section 3.1.1</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Inferred</span>
+        <span class="cmp-val">No formal accuracy or recall guarantees are provided for any operator or optimization
+          <span class="src">Section 4</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">Logical query plan optimizations (e.g., operator re-ordering) and other general LM-approximation techniques (code synthesis, prompt adaptation) are left to future work
+          <span class="src">Section 3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">Automatic estimation of correlation between semantic similarity scores and user-defined ranking criteria for transparent pivot optimization is left to future work
+          <span class="src">Section 3.2.3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">Quantitative study of semantic aggregation quality under different partitioning strategies is left to future work
+          <span class="src">Section 3.4.3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The approximate join algorithms (map-search-filter, search-filter) may miss valid join pairs, with quality depending on predicate-embedding correlation
+          <span class="src">Section 3.3.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">Current implementation is limited to Pandas API extension; SQL integration is mentioned but not implemented
+          <span class="src">Section 2</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#4a2d7a">X</span> Cross-Reference with Anchor Papers</div>
+    <div class="card">
+      <table>
+        <tr><th>Anchor Paper</th><th>Relationship</th><th>Detail</th><th>Source</th></tr>
+        <tr>
+          <td>lotus</td>
+          <td>Shared Dataset|shared Baseline|extends|complements</td>
+          <td>This IS the LOTUS paper. It defines the &lt;strong&gt;semantic operators&lt;/strong&gt; programming model that other anchor papers reference. It introduces sem_filter, sem_join, sem_topk, sem_agg, sem_map, sem_extract, sem_search, sem_cluster_by, and sem_index as composable declarative operators.</td>
+          <td><span class="src">entire paper</span></td>
+        </tr>
+        <tr>
+          <td>bargain</td>
+          <td>Complements</td>
+          <td>LOTUS uses &lt;strong&gt;model cascades&lt;/strong&gt; with log-probability-based confidence scoring for sem_filter, similar to the cascade approach in Bargain but without formal statistical guarantees. LOTUS&#39; cascade scoring leverages the binary-label output semantics of the filter operator rather than general-purpose scoring.</td>
+          <td><span class="src">Section 3.1.1</span></td>
+        </tr>
+        <tr>
+          <td>csv</td>
+          <td>Complements</td>
+          <td>LOTUS&#39; &lt;strong&gt;sem_filter&lt;/strong&gt; with model cascades relates to CSV&#39;s semantic filter paradigm. LOTUS uses log-probability confidence thresholds for cascade routing, while CSV explores beyond-linear invocation patterns. Both address efficient semantic filtering over datasets.</td>
+          <td><span class="src">Section 3.1.1</span></td>
+        </tr>
+        <tr>
+          <td>task_cascades</td>
+          <td>Complements</td>
+          <td>LOTUS implements &lt;strong&gt;model cascades&lt;/strong&gt; for sem_filter and sem_topk using proxy-oracle LM pairs, which relates to task cascades&#39; approach of varying task complexity across cascade stages. LOTUS&#39; cascades are operator-specific rather than task-level.</td>
+          <td><span class="src">Section 3.1.1, Section 3.2.3</span></td>
+        </tr>
+        <tr>
+          <td>nirvana</td>
+          <td>Complements</td>
+          <td>Both LOTUS and Nirvana extend relational query processing with semantic/AI-based operations. LOTUS focuses on &lt;strong&gt;declarative semantic operators&lt;/strong&gt; over text data with a Pandas API, while Nirvana targets multi-modal analytics. Both share the vision of integrating AI reasoning into data processing pipelines.</td>
+          <td><span class="src">Section 1, Section 2</span></td>
+        </tr>
+        <tr>
+          <td>thriftllm</td>
+          <td>Complements</td>
+          <td>LOTUS&#39; model cascade optimization for sem_filter relates to ThriftLLM&#39;s cost-effective LLM selection. Both use multiple LMs of varying cost/quality, but LOTUS routes at the record level based on confidence while ThriftLLM selects models for classification tasks.</td>
+          <td><span class="src">Section 3.1.1</span></td>
+        </tr>
+        <tr>
+          <td>scaledoc</td>
+          <td>Complements</td>
+          <td>Both address scaling LLM-based predicates over large document collections. LOTUS provides general-purpose semantic operators with approximate join algorithms and cascade optimizations, while ScaleDoc focuses specifically on predicate evaluation over large document collections.</td>
+          <td><span class="src">Section 3.3, Section 4.2</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Deep Paper Review — Research Paper Toolkit v0.1</p>
+  <p>Extraction date: 2026-03-30 | Level 2 | <span class="src">source tags</span> indicate extraction provenance</p>
+  <p style="margin-top:0.5rem"><span class="src src-missing">orange tags</span> = information not found, needs verification</p>
+</div>
+
+</div>
+</body>
+</html>

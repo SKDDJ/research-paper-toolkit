@@ -14,5 +14,5 @@ docs/
 
 # Generated data (reviews, reports)
 data/reviews/
-data/reports/
+# data/reports/
 data/preferences.jsonl

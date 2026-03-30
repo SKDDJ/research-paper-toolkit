@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Deep Review — Beyond Relational: Semantic-Aware Multi-Modal Analytics with LLM-Native Query Optimization</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --border: #e8e6e1; --text: #1a1a1a;
+  --muted: #6b6860; --accent: #2d5a27; --accent-bg: #eef4ed; --accent-border: #c2d9bf;
+  --warn: #8b5e00; --warn-bg: #fef7ec; --warn-border: #f0d9a0;
+  --danger: #8b1a1a; --danger-bg: #fdf0f0;
+  --blue: #1a4f8b; --blue-bg: #edf3fb; --blue-border: #b8d0eb;
+  --purple: #4a2d7a; --purple-bg: #f3eff8;
+  --radius: 6px; --font: 'DM Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif; --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.paper-header { margin-bottom: 2rem; }
+.paper-header h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 500; }
+.badge-venue { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.badge-year { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-level { background: var(--purple-bg); color: var(--purple); border: 1px solid #d4c8e8; }
+.authors { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.25rem; }
+.authors strong { color: var(--text); font-weight: 500; }
+.institution { font-size: 0.8rem; color: var(--muted); }
+.links { margin-top: 0.5rem; display: flex; gap: 0.75rem; }
+.links a { font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; }
+.links a:hover { text-decoration: underline; }
+.section { margin-bottom: 1.5rem; }
+.section-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.section-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: white; flex-shrink: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+.card-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.src { display: inline-block; font-size: 0.65rem; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; background: #f0eeea; color: var(--muted); margin-left: 4px; cursor: help; border: 1px solid var(--border); }
+.src-missing { background: var(--danger-bg); color: var(--danger); border-color: #e8c0c0; }
+.framework-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+@media (max-width: 600px) { .framework-grid { grid-template-columns: 1fr; } }
+.fw-cell { padding: 0.75rem; border-radius: var(--radius); border-left: 3px solid; }
+.fw-cell h4 { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.fw-cell p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.fw-1 { background: #f0f7ff; border-color: #3b82f6; } .fw-1 h4 { color: #1e40af; }
+.fw-2 { background: #fef7f0; border-color: #f59e0b; } .fw-2 h4 { color: #92400e; }
+.fw-3 { background: #f0fdf4; border-color: #22c55e; } .fw-3 h4 { color: #166534; }
+.fw-4 { background: #fdf2f8; border-color: #ec4899; } .fw-4 h4 { color: #9d174d; }
+.fw-5 { background: #f5f3ff; border-color: #8b5cf6; } .fw-5 h4 { color: #5b21b6; }
+.fw-6 { background: #fffbeb; border-color: #eab308; } .fw-6 h4 { color: #854d0e; }
+.fw-7 { background: #fef2f2; border-color: #ef4444; } .fw-7 h4 { color: #991b1b; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.75rem; background: #f5f4f0; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf9f6; }
+.num { font-family: var(--mono); font-size: 0.8rem; }
+.best { font-weight: 600; color: var(--accent); }
+details { margin-bottom: 0.5rem; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius); }
+details summary:hover { background: #f5f4f0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.callout { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.75rem; font-size: 0.85rem; line-height: 1.6; }
+.callout-insight { background: var(--accent-bg); border: 1px solid var(--accent-border); }
+.callout-caution { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+.callout-label { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; display: block; }
+.callout-insight .callout-label { color: var(--accent); }
+.callout-caution .callout-label { color: var(--warn); }
+.cmp { display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.25rem; font-size: 0.82rem; }
+.cmp-label { font-weight: 500; min-width: 100px; flex-shrink: 0; }
+.cmp-val { color: var(--muted); }
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+/* Emphasis for key terms and values */
+.card strong, .fw-cell strong, .cmp-val strong { color: var(--text); font-weight: 600; }
+.key-value { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+
+/* Formula blocks */
+.formula-card { background: #f8f7f4; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+.formula-card .formula-id { font-family: var(--mono); font-size: 0.75rem; color: var(--blue); font-weight: 600; }
+.formula-card .formula-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.25rem; }
+.formula-card .formula-latex { font-size: 1rem; margin: 0.5rem 0; }
+
+/* Table rendering within key tables */
+.card table { margin-top: 0.5rem; }
+.card table td { font-family: var(--mono); font-size: 0.78rem; }
+
+/* Figure cards */
+.figure-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; margin-bottom: 0.5rem; }
+.figure-card img { max-width: 100%; border-radius: 4px; margin-bottom: 0.5rem; }
+.figure-card .fig-caption { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+.figure-card .fig-id { font-weight: 600; font-size: 0.82rem; margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="paper-header">
+  <h1>Beyond Relational: Semantic-Aware Multi-Modal Analytics with LLM-Native Query Optimization</h1>
+  <div class="meta-row">
+    <span class="badge badge-venue">arXiv preprint</span>
+    <span class="badge badge-year">2025</span>
+    <span class="badge badge-level">Level 2 Review</span>
+  </div>
+  <div class="authors">
+    Junhao Zhu,     Lu Chen,     Xiangyu Ke,     Ziquan Fang,     Tianyi Li,     Yunjun Gao,     Christian S. Jensen  </div>
+  <div class="institution">Zhejiang University, Aalborg University</div>
+  <div class="links">
+    <a href="https://arxiv.org/abs/2511.19830">arXiv</a>
+    <a href="https://arxiv.org/pdf/2511.19830.pdf">PDF</a>
+    <a href="https://github.com/JunHao-Zhu/nirvana">Code</a>
+  </div>
+</div>
+
+<!-- CORE CONTRIBUTION -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">S</span> Core Contribution</div>
+  <div class="card">
+    <p style="font-size:0.9rem"><strong>Nirvana</strong> is a multi-modal data analytics framework that introduces an <strong>agentic logical plan optimizer</strong> using natural-language transformation rules and <strong>random-walk-based search</strong> to explore semantically equivalent query plans, combined with a <strong>cost-aware physical plan optimizer</strong> that selects the most cost-effective LLM backend per operator using a novel <strong>improvement score</strong> metric. The physical optimizer further incorporates <strong>computation reuse</strong> and <strong>evaluation pushdown</strong> techniques guided by a <strong>model capability hypothesis</strong> to eliminate unnecessary expensive model invocations.
+      <span class="src">Section 1, Section 2.2</span>
+    </p>
+  </div>
+</div>
+
+<!-- FRAMEWORK MAPPING (Level 2 only) -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Mapping to Dr. Lan&#39;s 7-Layer Semantic Filter Framework</div>
+  <div class="framework-grid">
+    <div class="fw-cell fw-1">
+      <h4>1. Data Representation Layer</h4>
+      <p><strong>Nirvana</strong> supports tables with both structured fields (numerical, dates) and unstructured fields (text, documents, images, audio). Unstructured fields are stored as file paths pointing to remote locations (URLs, S3). Semantic operators process these multi-modal fields via LLM inference. The data model is a generalization of relational tables to accommodate heterogeneous content.
+        <span class="src">Section 2.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-2">
+      <h4>2. Candidate Executor / Proxy Layer</h4>
+      <p>The system uses a pool of models ordered by capability and cost: <strong>gpt-4.1-nano</strong> (cheapest/weakest), <strong>gpt-4o-mini</strong>, <strong>gpt-4.1-mini</strong>, <strong>gpt-4.1</strong> (most expensive/strongest). The physical optimizer selects per-operator backends. Additionally, the logical optimizer can replace LLM operators entirely with <strong>non-LLM compute functions</strong> (UDFs), bypassing LLM inference altogether.
+        <span class="src">Section 4, Section 3.2, Section 5.1.4</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-3">
+      <h4>3. Unit of Decision Layer</h4>
+      <p>The physical optimizer makes model selection decisions at the <strong>per-operator granularity</strong> — each semantic operator in a logical plan is independently assigned its most cost-effective backend model. This is enabled by the <strong>Operator Independence Hypothesis</strong> (Hypothesis 1). The logical optimizer operates at the <strong>per-plan level</strong>, evaluating and comparing entire logical plans.
+        <span class="src">Section 4.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-4">
+      <h4>4. Predicate Transformation Layer</h4>
+      <p>The <strong>agentic logical optimizer</strong> transforms predicates/instructions through three rules: (1) <strong>Filter pushdown</strong> reorders operators to prune data early; (2) <strong>Operator fusion</strong> merges multiple operators into one with a combined NL predicate, reducing LLM calls; (3) <strong>Non-LLM replacement</strong> converts NL instructions into equivalent compute functions (e.g., 'Score > 8.5' becomes a comparison UDF). These transformations are expressed in natural language and applied by an LLM rewriter.
+        <span class="src">Section 3.2</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-5">
+      <h4>5. Calibration / Sampling Layer</h4>
+      <p>Both the logical and physical optimizers use <strong>data samples</strong> (5% ratio) for evaluation. The logical optimizer executes candidate plans on samples and uses <strong>LLM-as-a-Judge</strong> to rate semantic equivalence. The physical optimizer computes <strong>improvement scores</strong> on sampled data to estimate model cost-effectiveness. Default constant selectivity assumptions (filter=0.5, reduce=0, others=1) are used for cost estimation, with plans for future semantic cardinality estimation.
+        <span class="src">Section 3.1, Section 5.1.4</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-6">
+      <h4>6. Routing / Action Layer</h4>
+      <p>The physical optimizer uses a <strong>greedy algorithm</strong> (Algorithm 2) that iterates through models in order of increasing capability. For each operator, it computes the <strong>improvement score</strong> and selects the model if the marginal improvement exceeds threshold $\Delta I_{min}$ (set to 20%). The logical optimizer uses <strong>random walk search</strong> with a mixture sampling distribution to route between plan exploration and exploitation. Concurrent execution with up to 16 coroutines is used for throughput.
+        <span class="src">Section 4.1, Section 3.1, Section 5.1.4</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-7">
+      <h4>7. Guarantee Layer</h4>
+      <p><strong>Nirvana</strong> provides approximate quality guarantees through: (1) an <strong>error tolerance ε</strong> (set to 0.8) that filters out plans whose LLM-as-a-Judge similarity score falls below the threshold; (2) an <strong>improvement margin ΔI_min</strong> (20%) for physical optimization. These are soft, empirical guarantees rather than formal statistical bounds. The LLM-as-a-Judge achieves >80% success rate but can fail in ~10% of cases. No formal probabilistic guarantees (e.g., confidence intervals) are provided.
+        <span class="src">Section 3.1, Section 5.1.4, Section 5.3.5</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- METHOD COMPONENTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#2d5a27">M</span> Method Components</div>
+  <div class="card">
+    <details open>
+      <summary>Agentic Logical Plan Optimizer</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Uses an LLM-driven <strong>random walk search</strong> framework to explore a tree of candidate logical plans. Plans are sampled from a mixture of uniform and cost-weighted probability distributions (Eq. 1), rewritten by an LLM using <strong>natural language transformation rules</strong> (filter pushdown, operator fusion, non-LLM replacement), and evaluated via <strong>LLM-as-a-Judge</strong> for semantic equivalence checking. The optimizer iterates N_max times and returns the lowest-cost plan satisfying an accuracy constraint ε.
+        <span class="src">Section 3</span>
+      </p>
+    </details>
+    <details>
+      <summary>Transformation Rules</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Three NL-specified rules: (1) <strong>Filter pushdown</strong> moves filters earlier in the plan; (2) <strong>Operator fusion</strong> merges multiple operators on the same field into one, reducing LLM calls; (3) <strong>Non-LLM replacement</strong> substitutes LLM-powered operators with equivalent compute functions (UDFs). Rules are expressed in natural language and decoupled from system internals.
+        <span class="src">Section 3.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>LLM-as-a-Judge Plan Evaluator</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Executes both the original and rewritten plans on a <strong>data sample</strong>, then prompts an LLM to rate semantic similarity on a 0-10 scale. The normalized rating serves as the plan's accuracy estimate. Achieves >80% success rate, >85% precision, and >90% recall across benchmarks.
+        <span class="src">Section 3.1, Section 5.3.5</span>
+      </p>
+    </details>
+    <details>
+      <summary>Physical Plan Optimizer with Improvement Score</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Assigns the most <strong>cost-effective LLM backend</strong> to each operator in a logical plan. Uses a novel <strong>improvement score</strong> $I_{m_1 \rightarrow m}$ that measures the expected proportion of inputs where switching from baseline model $m_1$ to model $m$ yields outputs consistent with the oracle model $m^*$ while $m_1$ does not. Models are evaluated in order of increasing capability, and a model is selected if its improvement score exceeds a threshold $\Delta I_{min}$.
+        <span class="src">Section 4</span>
+      </p>
+    </details>
+    <details>
+      <summary>Evaluation Pushdown</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Reduces expensive oracle model ($m^*$) invocations by conditioning evaluations on subsets where cheaper models disagree. Analogous to <strong>predicate pushdown</strong> in databases — expensive evaluations $m_2 = m^*$ are only computed on records where $m_1 \neq m_2$.
+        <span class="src">Section 4.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Computation Reuse</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">When computing improvement scores for progressively stronger models, <strong>reuses intermediate results</strong> from earlier computations. E.g., $I_{m_1 \rightarrow m_3}$ directly reuses $I_{m_1 \rightarrow m_2}$ via the law of total probability decomposition.
+        <span class="src">Section 4.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Model Capability Hypothesis</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)"><strong>Hypothesis 2</strong> states that if a weaker model $m$ returns the correct answer, any stronger model $m^+$ also returns the correct answer. This enables elimination of expensive $m^*$ invocations when computing improvement scores, yielding approximations (Eqs. 6-8) that avoid oracle calls entirely in many cases. Empirically validated: >90% of disagreements between GPT-4.1 and GPT-4.1-nano favor GPT-4.1.
+        <span class="src">Section 4.3, Table 2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Local Rewrite Model</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A <strong>fine-tuned small LLM</strong> (e.g., Qwen-3-8B, LLaMA-3-8B) trained on pairs of un-optimized and rewritten logical plans using <strong>LoRA</strong>, serving as a local substitute for cloud LLM services during plan rewriting to reduce latency and cost.
+        <span class="src">Section 3.3</span>
+      </p>
+    </details>
+    <details>
+      <summary>Semantic Operators</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Four programmable operators: <strong>map</strong> (LLM-driven column transformation), <strong>filter</strong> (NL predicate evaluation), <strong>reduce</strong> (NL-specified aggregation), and <strong>rank</strong> (NL-defined ranking). All parameterized by natural language instructions and applicable to multi-modal data.
+        <span class="src">Section 2.1, Table 1</span>
+      </p>
+    </details>
+  </div>
+</div>
+
+<!-- THEORETICAL RESULTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">T</span> Theoretical Results</div>
+  <div class="card">
+    <div class="cmp">
+      <span class="cmp-label">Proposition</span>
+      <span class="cmp-val"><strong>Operator Independence Hypothesis (Hypothesis 1)</strong>: Choosing a more intelligent/costly model for one operator improves overall result quality regardless of models allocated to other operators, enabling greedy per-operator model selection.
+        <span class="src">Section 4.1</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Proposition</span>
+      <span class="cmp-val"><strong>Model Capability Hypothesis (Hypothesis 2)</strong>: If a model m returns the correct answer to query x, any more powerful model m+ also returns the correct answer. This enables elimination of oracle model invocations in improvement score computation.
+        <span class="src">Section 4.3</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Bound</span>
+      <span class="cmp-val">Under the Model Capability Hypothesis, the improvement score $I_{m_1 \rightarrow m_2}$ can be approximated as $Pr(m_1 \neq m_2)$, completely eliminating evaluations involving the expensive oracle model $m^*$.
+        <span class="src">Section 4.3, Eq. 6</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Bound</span>
+      <span class="cmp-val">The approximation of $I_{m_1 \rightarrow m^*}$ (Eq. 8) reduces the number of $m^*$ invocations by approximately <strong>3×</strong> compared to the exact computation in Eq. 5.
+        <span class="src">Section 4.3</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- KEY FORMULAS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">Q</span> Key Formulas</div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 1</span>
+    <span class="src">Section 3.1</span>
+    <div class="formula-latex">\[Pr(p_{i})=\lambda\cdot\frac{1}{|\mathcal{P}|}+(1-\lambda)\cdot\frac{\exp(\mathit{cost}_{\mathit{max}}-p_{i}.\mathit{cost})}{\sum_{p_{j}\in\mathcal{P}}\exp(\mathit{cost}_{\mathit{max}}-p_{j}.\mathit{cost})}\]</div>
+    <div class="formula-desc">Random walk sampling probability for plan selection, mixing uniform exploration with cost-weighted exploitation controlled by λ</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 2</span>
+    <span class="src">Section 4.2</span>
+    <div class="formula-latex">\[I_{m_{1}\rightarrow m_{2}}(D,m^{*})\triangleq\mathbb{E}_{x\sim D}[m_{2}(x)=m^{*}(x),m_{1}(x)\neq m_{2}(x)]\]</div>
+    <div class="formula-desc">Definition of the &lt;strong&gt;improvement score&lt;/strong&gt; — expected proportion of inputs where switching from m1 to m2 yields oracle-consistent outputs while m1 does not</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 6</span>
+    <span class="src">Section 4.3</span>
+    <div class="formula-latex">\[I_{m_{1}\rightarrow m_{2}} \approx Pr(m_{1}\neq m_{2})\]</div>
+    <div class="formula-desc">Approximation of improvement score under the &lt;strong&gt;model capability hypothesis&lt;/strong&gt;, eliminating all oracle model invocations</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 7</span>
+    <span class="src">Section 4.3</span>
+    <div class="formula-latex">\[I_{m_{1}\rightarrow m_{3}}\approx I_{m_{1}\rightarrow m_{2}}+Pr(m_{2}\neq m_{3}\mid m_{1}=m_{2})Pr(m_{1}=m_{2})\]</div>
+    <div class="formula-desc">Recursive approximation of improvement score for third model, reusing computation from m2 evaluation</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 8</span>
+    <span class="src">Section 4.3</span>
+    <div class="formula-latex">\[I_{m_{1}\rightarrow m^{*}}\approx Pr(m_{1}\neq m^{*}\mid m_{1}=m_{2},m_{2}=m_{3})(1-I_{m_{1}\rightarrow m_{3}})+I_{m_{1}\rightarrow m_{3}}-I_{m_{1}\rightarrow m_{2}}+Pr(m_{2}=m_{3}\mid m_{1}\neq m_{2})Pr(m_{1}\neq m_{2})\]</div>
+    <div class="formula-desc">Approximation of improvement score for oracle model, reducing m* invocations by ~3× compared to exact computation</div>
+  </div>
+</div>
+
+<!-- KEY FIGURES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">G</span> Key Figures</div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 1
+      <span class="src">Figure 1</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2511.19830/assets/x1.png" alt="Figure 1" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Example of performing data analytics on a multi-modal movie table by (1) directly prompting an LLM or (2) using a data analytical processing system.</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Illustrates the motivation: direct LLM prompting fails on large tables due to context window limits, while a semantic analytical processing system decomposes queries into atomic semantic tasks executed on appropriately sized batches.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 2
+      <span class="src">Figure 2</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2511.19830/assets/x2.png" alt="Figure 2" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> System overview of Nirvana.</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows the two-phase optimization pipeline: logical optimizer samples and rewrites plans via random walk, then physical optimizer assigns cost-effective models to each operator. Illustrates the flow from initial query plan through logical optimization to physical optimization.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 3
+      <span class="src">Figure 3</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2511.19830/assets/x3.png" alt="Figure 3" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> A running example of logical plan optimization where each node (a logical plan) is sampled by random walk.</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows the tree of candidate plans explored during optimization, with transformation rules applied (filter pushdown, operator fusion, non-LLM replacement). Demonstrates how plans are evaluated for semantic equivalence and cost, with p3 discarded for failing equivalence check.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 5
+      <span class="src">Figure 5</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2511.19830/assets/x5.png" alt="Figure 5" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Possible responses of different models to a query, based on the model capability hypothesis.</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Visualizes the key observations derived from the model capability hypothesis that enable elimination of expensive oracle model invocations. Shows how model output agreement/disagreement patterns constrain the possible response combinations.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 9
+      <span class="src">Figure 9</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2511.19830/assets/x9.png" alt="Figure 9" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Breakdown of Nirvana in terms of the runtime and the cost per phase.</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows runtime and cost distributions across logical optimizer, physical optimizer, and query executor. Reveals that optimization overhead proportions are 50.7%, 6.7%, and 42.7% for Movie, Estate, and Game respectively, with logical optimizer overhead remaining nearly constant (~7-9s) across datasets.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 10
+      <span class="src">Figure 10</span>
+    </div>
+    <div class="fig-caption"><strong>Caption:</strong> Breakdown of Nirvana in terms of the number of records processed and prices per models on all workloads.</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows how the physical optimizer distributes workload across different LLM tiers, with cheaper models handling the majority of processing. Demonstrates selective multi-model assignment within individual queries.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 11
+      <span class="src">Figure 11</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2511.19830/assets/x11.png" alt="Figure 11" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Case study of query optimization for q8 on Movie.</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Illustrates a successful optimization case where the logical optimizer applies operator reordering and non-LLM replacement (converting Oscar-checking instruction to a UDF), achieving ~98% runtime and ~89% cost reduction.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 12
+      <span class="src">Figure 12</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2511.19830/assets/x12.png" alt="Figure 12" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Failure cases of logical and physical optimization.</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows representative failures: (b) incorrect UDF generation where map works only on subset of data and reduce cannot process strings; (c) physical optimization failure where GPT-4o-mini produces same incorrect output as oracle GPT-4.1.</div>
+  </div>
+</div>
+
+<!-- KEY TABLES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">B</span> Key Tables</div>
+  <div class="card">
+    <div class="card-title">Table 1
+      <span class="src">Table 1</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Semantic operators currently supported in Nirvana.</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Operator</th>
+          <th>Definition</th>
+          <th>Usage Example</th>
+        </tr>
+        <tr>
+          <td>map</td>
+          <td>Applies an LLM to perform a transformation on a column, producing a new column as output</td>
+          <td>df.semantic_map(user_instruction=”NL-specified transformation”, input_column=”colA”, output_column=”colB”)</td>
+        </tr>
+        <tr>
+          <td>filter</td>
+          <td>Uses an LLM to evaluate a natural language predicate on a column</td>
+          <td>df.semantic_filter(user_instruction=”NL-specified predicate”, input_column=”colA”)</td>
+        </tr>
+        <tr>
+          <td>reduce</td>
+          <td>Aggregates values in a column based on an NL-specified reduction function</td>
+          <td>df.semantic_reduce(user_instruction=”NL-specified reducer”, input_column=”colA”)</td>
+        </tr>
+        <tr>
+          <td>rank</td>
+          <td>Ranks values in a column according to an NL-specified ranking function</td>
+          <td>df.semantic_rank(user_instruction=”NL-specified ranker”, input_column=”colA”)</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Defines four semantic operators: map, filter, reduce, rank — all parameterized by natural language instructions and applicable to multi-modal data columns.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 4
+      <span class="src">Table 4</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Runtime and monetary cost of Nirvana, Table-LLaVA, TableRAG, Palimpzest, and Lotus on the Movie, Estate, and Game benchmarks.</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Dataset</th>
+          <th>Workload</th>
+          <th>Table-LLaVA</th>
+          <th>TableRAG</th>
+          <th>Palimpzest</th>
+          <th>Lotus</th>
+          <th>Nirvana</th>
+        </tr>
+        <tr>
+          <td>Time (s)</td>
+          <td>Time (s)</td>
+          <td>Cost ($)</td>
+          <td>Time (s)</td>
+          <td>Cost ($)</td>
+          <td>Time (s)</td>
+          <td>Cost ($)</td>
+          <td>Time (s)</td>
+          <td>Cost ($)</td>
+          <td>Δ \Delta Time</td>
+          <td>Δ \Delta Cost</td>
+        </tr>
+        <tr>
+          <td>Movie</td>
+          <td>Small</td>
+          <td>6.103 6.103</td>
+          <td>18.048 18.048</td>
+          <td>0.035 0.035</td>
+          <td>81.754 81.754</td>
+          <td>0.220 0.220</td>
+          <td>40.283 40.283</td>
+          <td>0.170 0.170</td>
+          <td>19.963 19.963</td>
+          <td>0.091 0.091</td>
+          <td>↓ 50.44 % \downarrow 50.44\%</td>
+          <td>↓ 46.48 % \downarrow 46.48\%</td>
+        </tr>
+        <tr>
+          <td>Medium</td>
+          <td>1.320 1.320</td>
+          <td>15.452 15.452</td>
+          <td>0.028 0.028</td>
+          <td>82.685 82.685</td>
+          <td>0.126 0.126</td>
+          <td>62.326 62.326</td>
+          <td>0.107 0.107</td>
+          <td>16.956 16.956</td>
+          <td>0.011 0.011</td>
+          <td>↓ 72.79 % \downarrow 72.79\%</td>
+          <td>↓ 89.50 % \downarrow 89.50\%</td>
+        </tr>
+        <tr>
+          <td>Large</td>
+          <td>1.596 1.596</td>
+          <td>17.463 17.463</td>
+          <td>0.086 0.086</td>
+          <td>163.115 163.115</td>
+          <td>0.390 0.390</td>
+          <td>76.178 76.178</td>
+          <td>0.383 0.383</td>
+          <td>21.169 21.169</td>
+          <td>0.014 0.014</td>
+          <td>↓ 72.21 % \downarrow 72.21\%</td>
+          <td>↓ 96.31 % \downarrow 96.31\%</td>
+        </tr>
+        <tr>
+          <td>Estate</td>
+          <td>Small</td>
+          <td>/</td>
+          <td>22.178 22.178</td>
+          <td>0.123 0.123</td>
+          <td>363.671 363.671</td>
+          <td>1.479 1.479</td>
+          <td>149.945 149.945</td>
+          <td>0.748 0.748</td>
+          <td>114.196 114.196</td>
+          <td>0.612 0.612</td>
+          <td>↓ 23.84 % \downarrow 23.84\%</td>
+          <td>↓ 18.16 % \downarrow 18.16\%</td>
+        </tr>
+        <tr>
+          <td>Medium</td>
+          <td>/</td>
+          <td>21.516 21.516</td>
+          <td>0.153 0.153</td>
+          <td>581.923 581.923</td>
+          <td>1.660 1.660</td>
+          <td>252.182 252.182</td>
+          <td>1.527 1.527</td>
+          <td>193.317 193.317</td>
+          <td>0.524 0.524</td>
+          <td>↓ 23.34 % \downarrow 23.34\%</td>
+          <td>↓ 65.90 % \downarrow 65.90\%</td>
+        </tr>
+        <tr>
+          <td>Large</td>
+          <td>/</td>
+          <td>24.449 24.449</td>
+          <td>0.146 0.146</td>
+          <td>918.673 918.673</td>
+          <td>2.677 2.677</td>
+          <td>260.099 260.099</td>
+          <td>1.564 1.564</td>
+          <td>233.679 233.679</td>
+          <td>0.417 0.417</td>
+          <td>↓ 10.16 % \downarrow 10.16\%</td>
+          <td>↓ 73.37 % \downarrow 73.37\%</td>
+        </tr>
+        <tr>
+          <td>Game</td>
+          <td>Small</td>
+          <td>/</td>
+          <td>18.725 18.725</td>
+          <td>0.035 0.035</td>
+          <td>≥ 5.5 \geq 5.5 hours</td>
+          <td>/</td>
+          <td>1375.920 1375.920</td>
+          <td>4.116 4.116</td>
+          <td>213.767 213.767</td>
+          <td>0.084 0.084</td>
+          <td>↓ 84.46 % \downarrow 84.46\%</td>
+          <td>↓ 97.96 % \downarrow 97.96\%</td>
+        </tr>
+        <tr>
+          <td>Medium</td>
+          <td>/</td>
+          <td>16.485 16.485</td>
+          <td>0.042 0.042</td>
+          <td>≥ 5.5 \geq 5.5 hours</td>
+          <td>/</td>
+          <td>2491.667 2491.667</td>
+          <td>7.419 7.419</td>
+          <td>478.463 478.463</td>
+          <td>0.187 0.187</td>
+          <td>↓ 80.80 % \downarrow 80.80\%</td>
+          <td>↓ 97.48 % \downarrow 97.48\%</td>
+        </tr>
+        <tr>
+          <td>Large</td>
+          <td>/</td>
+          <td>15.961 15.961</td>
+          <td>0.047 0.047</td>
+          <td>≥ 5.5 \geq 5.5 hours</td>
+          <td>/</td>
+          <td>3664.475 3664.475</td>
+          <td>10.925 10.925</td>
+          <td>728.443 728.443</td>
+          <td>0.249 0.249</td>
+          <td>↓ 80.12 % \downarrow 80.12\%</td>
+          <td>↓ 97.72 % \downarrow 97.72\%</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Main results table showing Nirvana consistently outperforms all baselines. Key takeaways: Nirvana achieves 50-85% runtime reduction and 18-98% cost reduction vs best competing system. Palimpzest exceeds 5.5 hours on Game. Improvements scale with dataset size and query complexity.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 5
+      <span class="src">Table 5</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Quality evaluation of Nirvana, its competitors, and its variants across the three benchmarks.</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th></th>
+          <th>Movie</th>
+          <th>Estate</th>
+          <th>Game</th>
+        </tr>
+        <tr>
+          <td>GPT-4.1</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td>✗</td>
+        </tr>
+        <tr>
+          <td>Table-LLaVA</td>
+          <td>0%</td>
+          <td>✗</td>
+          <td>✗</td>
+        </tr>
+        <tr>
+          <td>TableRAG</td>
+          <td>0%</td>
+          <td>0%</td>
+          <td>0%</td>
+        </tr>
+        <tr>
+          <td>Palimpzest</td>
+          <td>58.3%</td>
+          <td>25.0%</td>
+          <td>/</td>
+        </tr>
+        <tr>
+          <td>Lotus</td>
+          <td>8.3%</td>
+          <td>16.7%</td>
+          <td>25.0%</td>
+        </tr>
+        <tr>
+          <td>Nirvana</td>
+          <td>75.0%</td>
+          <td>41.7%</td>
+          <td>50.0%</td>
+        </tr>
+        <tr>
+          <td>Nirvana w/o Logical optim.</td>
+          <td>58.3%</td>
+          <td>33.3%</td>
+          <td>41.7%</td>
+        </tr>
+        <tr>
+          <td>Nirvana w/ GPT-4.1</td>
+          <td>58.3%</td>
+          <td>33.3%</td>
+          <td>33.3%</td>
+        </tr>
+        <tr>
+          <td>Nirvana w/o all optim.</td>
+          <td>66.7%</td>
+          <td>41.7%</td>
+          <td>41.7%</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Shows analytical accuracy (% queries correct). Nirvana achieves 75.0/41.7/50.0% on Movie/Estate/Game, outperforming Palimpzest (58.3/25.0/—) and Lotus (8.3/16.7/25.0%). GPT-4.1, Table-LLaVA, and TableRAG all fail (0% or ✗). Ablation variants show optimization preserves or slightly improves quality.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 6
+      <span class="src">Table 6</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Comparison w.r.t. cost of processing query q10 on the Estate dataset between Nirvana&#39;s logical optimizer and the Cascades optimizer in Palimpzest.</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th></th>
+          <th>Opt. time</th>
+          <th>Opt. cost</th>
+          <th>Exec. time</th>
+          <th>Exec. cost</th>
+        </tr>
+        <tr>
+          <td>PZ (Cascades)</td>
+          <td>∼ 0.0 \sim 0.0</td>
+          <td>0.0 0.0</td>
+          <td>995.3 995.3</td>
+          <td>2.4 2.4</td>
+        </tr>
+        <tr>
+          <td>Nirvana</td>
+          <td>9.8 9.8</td>
+          <td>8.2 ​ E − 3 8.2E^{-3}</td>
+          <td>99.1 99.1</td>
+          <td>0.038 0.038</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Demonstrates that despite 9.8s/$0.0082 optimization overhead (vs ~0 for Cascades), Nirvana achieves 10× execution speedup and 63× cost reduction, justifying LLM-based optimization.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 7
+      <span class="src">Table 7</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Reliability of the LLM-as-a-Judge and its average cost across queries.</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th></th>
+          <th>Success rate</th>
+          <th>Precision</th>
+          <th>Recall</th>
+          <th>Cost</th>
+        </tr>
+        <tr>
+          <td>Movie</td>
+          <td>81.6 % 81.6\%</td>
+          <td>85.2 % 85.2\%</td>
+          <td>93.8 % 93.8\%</td>
+          <td>0.0024 0.0024</td>
+        </tr>
+        <tr>
+          <td>Estate</td>
+          <td>90.0 % 90.0\%</td>
+          <td>95.6 % 95.6\%</td>
+          <td>91.6 % 91.6\%</td>
+          <td>0.0026 0.0026</td>
+        </tr>
+        <tr>
+          <td>Game</td>
+          <td>86.7 % 86.7\%</td>
+          <td>84.6 % 84.6\%</td>
+          <td>100 % 100\%</td>
+          <td>0.0016 0.0016</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Validates the LLM-as-a-Judge verification mechanism: >80% success rate, >85% precision, >90% recall at $0.0016-$0.0026 per query. Demonstrates near-human verification quality.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 9
+      <span class="src">Table 9</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Overhead comparison of processing q3 on Estate using Smart and the physical optimization in Nirvana.</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th></th>
+          <th>Optim. time (s)</th>
+          <th>Exec. time (s)</th>
+          <th>Ratio</th>
+        </tr>
+        <tr>
+          <td>Smart (exhaustive)</td>
+          <td>59.06</td>
+          <td>626.77</td>
+          <td>9.42%</td>
+        </tr>
+        <tr>
+          <td>Smart (efficient)</td>
+          <td>53.80</td>
+          <td>620.95</td>
+          <td>8.66%</td>
+        </tr>
+        <tr>
+          <td>Smart (multi-model)</td>
+          <td>56.27</td>
+          <td>625.73</td>
+          <td>8.99%</td>
+        </tr>
+        <tr>
+          <td>Nirvana (Synchronous)</td>
+          <td>13.11</td>
+          <td>674.56</td>
+          <td>1.94%</td>
+        </tr>
+        <tr>
+          <td>Nirvana (Asynchronous)</td>
+          <td>4.12</td>
+          <td>66.47</td>
+          <td>5.82%</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Shows Nirvana's physical optimizer is ~4× faster than Smart for optimization (13.11s vs 53-59s synchronous). Asynchronous mode further reduces to 4.12s optimization and 66.47s execution.</p>
+    </details>
+  </div>
+</div>
+
+<!-- EXPERIMENTAL SETUP -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">E</span> Experimental Setup</div>
+
+  <div class="card">
+    <div class="card-title">Datasets (3)</div>
+    <table>
+      <tr><th>Dataset</th><th>Domain</th><th>Size</th><th>Source</th></tr>
+      <tr>
+        <td>Movie</td>
+        <td>Entertainment/Movies</td>
+        <td class="num">250 records, 22 attributes</td>
+        <td><span class="src">Section 5.1.1, Table 3</span></td>
+      </tr>
+      <tr>
+        <td>Estate</td>
+        <td>Real estate</td>
+        <td class="num">1041 records, 4 attributes</td>
+        <td><span class="src">Section 5.1.1, Table 3</span></td>
+      </tr>
+      <tr>
+        <td>Game</td>
+        <td>Video games</td>
+        <td class="num">18891 records, 21 attributes</td>
+        <td><span class="src">Section 5.1.1, Table 3</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Baselines (6)</div>
+    <div class="cmp">
+      <span class="cmp-label">GPT-4.1</span>
+      <span class="cmp-val">Direct prompting baseline that feeds the query in natural language and entire table into GPT-4.1 to obtain analytical results. <span class="src">Section 5.1.3</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">TableRAG</span>
+      <span class="cmp-val">A Retrieval-Augmented Generation framework specifically designed for LM-based table understanding, with cell encoding budget of 10,000 and retrieval limit of 50. <span class="src">Section 5.1.3</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Table-LLaVA</span>
+      <span class="cmp-val">A tabular multimodal LLM that treats tables as images and combines table images with user queries as LLM inputs. Deployed locally on Nvidia A100 40G GPU. <span class="src">Section 5.1.3</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Palimpzest</span>
+      <span class="cmp-val">An LLM-powered analytical processing system with Cascades-inspired optimizer (Abacus) for logical and physical plan optimization. Configured with gpt-4.1, gpt-4.1-nano, text-embedding-3-small, and clip-ViT-B-32. <span class="src">Section 5.1.3</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Lotus</span>
+      <span class="cmp-val">A Pandas-like programming framework with LLM-powered semantic operators, supporting standard and approximate execution algorithms. Uses gpt-4.1 as backend and gpt-4.1-nano as helper model. <span class="src">Section 5.1.3</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Smart</span>
+      <span class="cmp-val">A model selection method that leverages a mix of LLMs to provide similar output quality as the most powerful LLM at lower cost. Three variants: exhaustive, efficient, multi-model. Compared for physical optimization overhead. <span class="src">Section 5.4.4</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key Results</div>
+    <table>
+      <tr><th>Description</th><th>Metric</th><th>Value</th><th>Source</th></tr>
+      <tr>
+        <td><strong>Nirvana</strong> reduces end-to-end runtime by <strong>10%–85%</strong> and monetary cost by <strong>76% on average</strong> compared to state-of-the-art systems across three benchmarks.</td>
+        <td>Runtime and Cost</td>
+        <td class="num ">10-85% runtime reduction, 76% avg cost reduction</td>
+        <td><span class="src">Abstract, Table 4</span></td>
+      </tr>
+      <tr>
+        <td>On the <strong>Game</strong> dataset (18,891 records), Nirvana achieves <strong>84.46%</strong> runtime reduction (Small) and <strong>97.96%</strong> cost reduction compared to Lotus, while Palimpzest exceeds <strong>5.5 hours</strong> and is impractical.</td>
+        <td>Runtime and Cost</td>
+        <td class="num ">213.8s / $0.084 (Small) vs 1375.9s / $4.116 (Lotus)</td>
+        <td><span class="src">Table 4</span></td>
+      </tr>
+      <tr>
+        <td><strong>Nirvana</strong> achieves <strong>75.0%</strong>, <strong>41.7%</strong>, and <strong>50.0%</strong> analytical accuracy on Movie, Estate, and Game respectively, outperforming Palimpzest (58.3%, 25.0%, /) and Lotus (8.3%, 16.7%, 25.0%).</td>
+        <td>Analytical Quality</td>
+        <td class="num ">75.0% / 41.7% / 50.0%</td>
+        <td><span class="src">Table 5</span></td>
+      </tr>
+      <tr>
+        <td>The logical plan optimizer reduces end-to-end execution time by <strong>40.6%</strong> and processing price by <strong>25.0%</strong> on average.</td>
+        <td>Runtime and Cost reduction from logical optimization</td>
+        <td class="num ">40.6% time, 25.0% cost</td>
+        <td><span class="src">Section 1</span></td>
+      </tr>
+      <tr>
+        <td>Nirvana's physical optimizer requires <strong>~4× less optimization time</strong> than Smart while making similar model selection decisions. Synchronous: <strong>13.11s</strong> vs Smart's <strong>53.80-59.06s</strong>.</td>
+        <td>Optimization overhead</td>
+        <td class="num ">13.11s (Nirvana sync) vs 53.80-59.06s (Smart variants)</td>
+        <td><span class="src">Table 9</span></td>
+      </tr>
+      <tr>
+        <td>For query q10 on Estate, Nirvana's logical optimizer costs <strong>9.8s and $0.0082</strong> but reduces execution from <strong>995.3s/$2.4</strong> (Palimpzest Cascades) to <strong>99.1s/$0.038</strong>, a <strong>10× speedup</strong> and <strong>63× cost reduction</strong>.</td>
+        <td>Optimization overhead vs execution savings</td>
+        <td class="num ">99.1s/$0.038 vs 995.3s/$2.4</td>
+        <td><span class="src">Table 6</span></td>
+      </tr>
+      <tr>
+        <td>LLM-as-a-Judge achieves <strong>>80% success rate</strong>, <strong>>85% precision</strong>, and <strong>>90% recall</strong> across all three benchmarks at negligible cost ($0.0016-$0.0026 per query).</td>
+        <td>LLM-as-a-Judge reliability</td>
+        <td class="num ">81.6-90.0% success, 84.6-95.6% precision, 91.6-100% recall</td>
+        <td><span class="src">Table 7</span></td>
+      </tr>
+      <tr>
+        <td>GPT-4.1 direct prompting, Table-LLaVA, and TableRAG all achieve <strong>0% accuracy</strong> on most benchmarks due to context length limits, image quality issues, or lack of aggregation support.</td>
+        <td>Analytical Quality</td>
+        <td class="num ">0%</td>
+        <td><span class="src">Table 5</span></td>
+      </tr>
+      <tr>
+        <td>The <strong>Model Capability Hypothesis</strong> is empirically validated: among 76 misaligned outputs between GPT-4.1 and GPT-4.1-nano, <strong>69 (90.8%)</strong> favor GPT-4.1 being correct.</td>
+        <td>Hypothesis validation</td>
+        <td class="num ">90.8% (69/76)</td>
+        <td><span class="src">Table 2</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Metrics</div>
+    <div class="cmp">
+      <span class="cmp-label">Runtime (seconds)</span>
+      <span class="cmp-val">End-to-end execution time including optimization and query processing, measured in seconds. <span class="src">Section 5.2.2, Table 4</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Monetary Cost (USD)</span>
+      <span class="cmp-val">Total API cost for LLM inference during optimization and execution, following official OpenAI pricing. <span class="src">Section 5.2.3, Table 4</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Analytical Quality (% correct)</span>
+      <span class="cmp-val">Proportion of queries answered correctly, where ground truth is labeled manually. Evaluated on Large workload queries that produce single-value results. <span class="src">Section 5.2.4, Table 5</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">LLM-as-a-Judge Reliability</span>
+      <span class="cmp-val">Measured via Success rate (TP+TN/total), Precision (TP/(TP+FP)), and Recall (TP/(TP+FN)) of the judge&#39;s rewrite verification. <span class="src">Section 5.3.5, Table 7</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Experimental Settings</div>
+    <div class="cmp"><span class="cmp-label">Oracle Model</span><span class="cmp-val">gpt-4.1</span></div>
+    <div class="cmp"><span class="cmp-label">Proxy Models</span><span class="cmp-val">gpt-4.1-nano, gpt-4o-mini, gpt-4.1-mini</span></div>
+    <div class="cmp"><span class="cmp-label">Hardware</span><span class="cmp-val">Nvidia A100 40G GPU (for Table-LLaVA baseline); OpenAI API for Nirvana</span></div>
+    <div class="cmp"><span class="cmp-label">Accuracy Target</span><span class="cmp-val">ε = 0.8 (error tolerance for logical optimization); ΔI_min = 20% (improvement margin for physical optimization)</span></div>
+  </div>
+</div>
+
+<!-- ANALYSIS (Level 2 only) -->
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val"><strong>Operator Independence (Hypothesis 1)</strong>: Choosing a more capable model for one operator improves overall quality regardless of models assigned to other operators, enabling greedy per-operator model selection.
+          <span class="src">Section 4.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val"><strong>Model Capability Hypothesis (Hypothesis 2)</strong>: If a weaker model returns the correct answer, any stronger model also returns the correct answer. Used to eliminate expensive oracle invocations.
+          <span class="src">Section 4.3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Default constant selectivity assumptions for operators: filter=0.5, reduce=0, others=1. The system does not currently perform semantic cardinality estimation.
+          <span class="src">Section 3.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">The output of the most powerful model (gpt-4.1) serves as a proxy for ground truth when computing improvement scores.
+          <span class="src">Section 4.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Small, bounded deviations from the oracle result are acceptable in exchange for cost/latency improvements (approximate query processing paradigm).
+          <span class="src">Section 2.2</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The Model Capability Hypothesis does not hold universally — in ~10% of cases, the weaker model can be correct while the stronger model is wrong, leading to potential physical optimization failures.
+          <span class="src">Section 4.3, Table 2, Figure 12(c)</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The logical optimizer incurs non-trivial overhead (7-9 seconds per query) due to LLM calls, which can dominate total cost for simple queries with single operators.
+          <span class="src">Section 5.3.2, Section 5.5.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The LLM-as-a-Judge fails in ~10% of cases (failing to abort incorrect rewrites) and ~8% of cases (failing to accept correct rewrites), mainly due to low coverage of data samples and heterogeneous operator outputs.
+          <span class="src">Section 5.3.5</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The logical optimizer can generate incorrect UDFs for non-LLM replacement, particularly when it lacks knowledge of table contents, and the judge fails to detect errors due to insufficient sample coverage.
+          <span class="src">Section 5.6.2, Figure 12</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">All systems struggle on queries involving complex mathematical computations over string-like values (e.g., calculating average price of properties).
+          <span class="src">Section 5.2.4</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Inferred</span>
+        <span class="cmp-val">No formal statistical guarantees (e.g., confidence intervals or PAC bounds) are provided — quality assurance relies on soft empirical thresholds.
+          <span class="src">Section 2.2, Section 4.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">Semantic cardinality estimation is not yet implemented; the system uses constant selectivity defaults, which limits optimization for operator reordering and join ordering.
+          <span class="src">Section 3.1</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#4a2d7a">X</span> Cross-Reference with Anchor Papers</div>
+    <div class="card">
+      <table>
+        <tr><th>Anchor Paper</th><th>Relationship</th><th>Detail</th><th>Source</th></tr>
+        <tr>
+          <td>nirvana</td>
+          <td>Shared Dataset</td>
+          <td>This IS the Nirvana paper. It introduces the Nirvana framework for multi-modal semantic analytics with LLM-native query optimization.</td>
+          <td><span class="src">entire paper</span></td>
+        </tr>
+        <tr>
+          <td>lotus</td>
+          <td>Shared Baseline</td>
+          <td>&lt;strong&gt;Lotus&lt;/strong&gt; is used as a primary baseline system. Nirvana compares against Lotus v1.1.0 across all three benchmarks. Lotus uses gpt-4.1 as backend and gpt-4.1-nano as helper model. Nirvana outperforms Lotus in runtime (19-81% reduction), cost (18-98% reduction), and quality (75% vs 8.3% on Movie). Both share the concept of semantic operators (map, filter, reduce) but Nirvana adds logical plan optimization and more sophisticated physical optimization.</td>
+          <td><span class="src">Section 5.1.3, Section 5.2, Table 4, Table 5</span></td>
+        </tr>
+        <tr>
+          <td>thriftllm</td>
+          <td>Complements</td>
+          <td>Nirvana&#39;s physical optimizer addresses a similar problem to &lt;strong&gt;ThriftLLM&lt;/strong&gt; — cost-effective LLM selection. However, Nirvana selects models per-operator within multi-operator query plans rather than for standalone classification tasks. The &lt;strong&gt;improvement score&lt;/strong&gt; metric and &lt;strong&gt;model capability hypothesis&lt;/strong&gt; are Nirvana&#39;s novel contributions to this space.</td>
+          <td><span class="src">Section 4</span></td>
+        </tr>
+        <tr>
+          <td>task_cascades</td>
+          <td>Complements</td>
+          <td>Both Nirvana and &lt;strong&gt;task cascades&lt;/strong&gt; address optimization of multi-step LLM-driven data processing pipelines. Nirvana&#39;s logical optimizer performs plan-level transformations (fusion, pushdown, replacement) while task cascades focus on cascading execution strategies. Nirvana&#39;s physical optimizer shares the concept of routing between models of different capabilities.</td>
+          <td><span class="src">Section 3, Section 4</span></td>
+        </tr>
+        <tr>
+          <td>bargain</td>
+          <td>Complements</td>
+          <td>Both systems aim to reduce LLM processing costs while maintaining quality. &lt;strong&gt;BARGAIN&lt;/strong&gt; provides formal statistical guarantees via proxy models and sampling, while Nirvana uses soft empirical thresholds (ε=0.8) and LLM-as-a-Judge verification without formal bounds. Nirvana&#39;s approach is broader (multi-operator plans, multi-modal data) but lacks BARGAIN&#39;s formal guarantee framework.</td>
+          <td><span class="src">Section 2.2, Section 4</span></td>
+        </tr>
+        <tr>
+          <td>csv</td>
+          <td>Complements</td>
+          <td>Both address efficient semantic filtering. Nirvana&#39;s physical optimizer with improvement scores and model capability hypothesis shares conceptual similarity with &lt;strong&gt;CSV&lt;/strong&gt;&#39;s approach to efficient semantic filter evaluation, but Nirvana operates at the query plan level rather than individual filter optimization.</td>
+          <td><span class="src">Section 4</span></td>
+        </tr>
+        <tr>
+          <td>scaledoc</td>
+          <td>Complements</td>
+          <td>Both systems address scaling LLM-based processing over large collections. Nirvana demonstrates scalability to 18,891 records (Game dataset) through logical and physical optimization, while &lt;strong&gt;ScaleDoc&lt;/strong&gt; focuses specifically on document-level predicate scaling. Nirvana&#39;s non-LLM replacement and operator fusion are complementary to ScaleDoc&#39;s approaches.</td>
+          <td><span class="src">Section 5, Table 3</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Deep Paper Review — Research Paper Toolkit v0.1</p>
+  <p>Extraction date: 2026-03-30 | Level 2 | <span class="src">source tags</span> indicate extraction provenance</p>
+  <p style="margin-top:0.5rem"><span class="src src-missing">orange tags</span> = information not found, needs verification</p>
+</div>
+
+</div>
+</body>
+</html>

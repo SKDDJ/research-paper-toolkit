@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Deep Review — ScaleDoc: Scaling LLM-based Predicates over Large Document Collections</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --border: #e8e6e1; --text: #1a1a1a;
+  --muted: #6b6860; --accent: #2d5a27; --accent-bg: #eef4ed; --accent-border: #c2d9bf;
+  --warn: #8b5e00; --warn-bg: #fef7ec; --warn-border: #f0d9a0;
+  --danger: #8b1a1a; --danger-bg: #fdf0f0;
+  --blue: #1a4f8b; --blue-bg: #edf3fb; --blue-border: #b8d0eb;
+  --purple: #4a2d7a; --purple-bg: #f3eff8;
+  --radius: 6px; --font: 'DM Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif; --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.paper-header { margin-bottom: 2rem; }
+.paper-header h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 500; }
+.badge-venue { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.badge-year { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-level { background: var(--purple-bg); color: var(--purple); border: 1px solid #d4c8e8; }
+.authors { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.25rem; }
+.authors strong { color: var(--text); font-weight: 500; }
+.institution { font-size: 0.8rem; color: var(--muted); }
+.links { margin-top: 0.5rem; display: flex; gap: 0.75rem; }
+.links a { font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; }
+.links a:hover { text-decoration: underline; }
+.section { margin-bottom: 1.5rem; }
+.section-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.section-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: white; flex-shrink: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+.card-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.src { display: inline-block; font-size: 0.65rem; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; background: #f0eeea; color: var(--muted); margin-left: 4px; cursor: help; border: 1px solid var(--border); }
+.src-missing { background: var(--danger-bg); color: var(--danger); border-color: #e8c0c0; }
+.framework-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+@media (max-width: 600px) { .framework-grid { grid-template-columns: 1fr; } }
+.fw-cell { padding: 0.75rem; border-radius: var(--radius); border-left: 3px solid; }
+.fw-cell h4 { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.fw-cell p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.fw-1 { background: #f0f7ff; border-color: #3b82f6; } .fw-1 h4 { color: #1e40af; }
+.fw-2 { background: #fef7f0; border-color: #f59e0b; } .fw-2 h4 { color: #92400e; }
+.fw-3 { background: #f0fdf4; border-color: #22c55e; } .fw-3 h4 { color: #166534; }
+.fw-4 { background: #fdf2f8; border-color: #ec4899; } .fw-4 h4 { color: #9d174d; }
+.fw-5 { background: #f5f3ff; border-color: #8b5cf6; } .fw-5 h4 { color: #5b21b6; }
+.fw-6 { background: #fffbeb; border-color: #eab308; } .fw-6 h4 { color: #854d0e; }
+.fw-7 { background: #fef2f2; border-color: #ef4444; } .fw-7 h4 { color: #991b1b; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.75rem; background: #f5f4f0; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf9f6; }
+.num { font-family: var(--mono); font-size: 0.8rem; }
+.best { font-weight: 600; color: var(--accent); }
+details { margin-bottom: 0.5rem; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius); }
+details summary:hover { background: #f5f4f0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.callout { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.75rem; font-size: 0.85rem; line-height: 1.6; }
+.callout-insight { background: var(--accent-bg); border: 1px solid var(--accent-border); }
+.callout-caution { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+.callout-label { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; display: block; }
+.callout-insight .callout-label { color: var(--accent); }
+.callout-caution .callout-label { color: var(--warn); }
+.cmp { display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.25rem; font-size: 0.82rem; }
+.cmp-label { font-weight: 500; min-width: 100px; flex-shrink: 0; }
+.cmp-val { color: var(--muted); }
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+/* Emphasis for key terms and values */
+.card strong, .fw-cell strong, .cmp-val strong { color: var(--text); font-weight: 600; }
+.key-value { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+
+/* Formula blocks */
+.formula-card { background: #f8f7f4; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+.formula-card .formula-id { font-family: var(--mono); font-size: 0.75rem; color: var(--blue); font-weight: 600; }
+.formula-card .formula-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.25rem; }
+.formula-card .formula-latex { font-size: 1rem; margin: 0.5rem 0; }
+
+/* Table rendering within key tables */
+.card table { margin-top: 0.5rem; }
+.card table td { font-family: var(--mono); font-size: 0.78rem; }
+
+/* Figure cards */
+.figure-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; margin-bottom: 0.5rem; }
+.figure-card img { max-width: 100%; border-radius: 4px; margin-bottom: 0.5rem; }
+.figure-card .fig-caption { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+.figure-card .fig-id { font-weight: 600; font-size: 0.82rem; margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="paper-header">
+  <h1>ScaleDoc: Scaling LLM-based Predicates over Large Document Collections</h1>
+  <div class="meta-row">
+    <span class="badge badge-venue">PVLDB</span>
+    <span class="badge badge-year">2025</span>
+    <span class="badge badge-level">Level 2 Review</span>
+  </div>
+  <div class="authors">
+    Hengrui Zhang,     Yulong Hui,     Yihao Liu,     Huanchen Zhang  </div>
+  <div class="institution">Tsinghua University</div>
+  <div class="links">
+    <a href="https://arxiv.org/abs/2509.12610">arXiv</a>
+    <a href="https://arxiv.org/pdf/2509.12610.pdf">PDF</a>
+    <a href="https://github.com/Seurgul/ScaleDoc">Code</a>
+  </div>
+</div>
+
+<!-- CORE CONTRIBUTION -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">S</span> Core Contribution</div>
+  <div class="card">
+    <p style="font-size:0.9rem"><strong>ScaleDoc</strong> introduces an <strong>offline-online decoupled architecture</strong> for semantic predicate execution over large document collections. It pre-computes LLM-based semantic embeddings offline, then trains a <strong>query-aware lightweight proxy model</strong> using a novel <strong>contrastive learning framework</strong> (with three loss functions ensuring smoothness, semantic monotonicity, and bipolarity) to produce well-behaved decision scores. An <strong>adaptive cascade mechanism</strong> with stratified sampling, distribution reconstruction, and frontier-based threshold selection minimizes oracle LLM invocations while meeting user-specified accuracy targets.
+      <span class="src">Section 1, Section 2.2</span>
+    </p>
+  </div>
+</div>
+
+<!-- FRAMEWORK MAPPING (Level 2 only) -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Mapping to Dr. Lan&#39;s 7-Layer Semantic Filter Framework</div>
+  <div class="framework-grid">
+    <div class="fw-cell fw-1">
+      <h4>1. Data Representation Layer</h4>
+      <p><strong>ScaleDoc</strong> uses <strong>NvEmbed</strong> (derived from Mistral-7B) to generate dense semantic embeddings for each document in a one-time offline phase. These embeddings capture rich contextual semantics and are stored for reuse across all ad-hoc queries, eliminating redundant per-query document processing.
+        <span class="src">Section 2.2, Section 6.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-2">
+      <h4>2. Candidate Executor / Proxy Layer</h4>
+      <p>The <strong>proxy</strong> is a <strong>query-specific 3-layer MLP</strong> trained online via contrastive learning on pre-computed embeddings. It produces cosine similarity decision scores. The <strong>oracle</strong> is <strong>GPT-4o</strong> accessed via API. The proxy is extremely lightweight compared to LLM cascade proxies (Llama-1B/3B), enabling fast training and inference.
+        <span class="src">Section 3.2, Section 5, Section 6.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-3">
+      <h4>3. Unit of Decision Layer</h4>
+      <p>Each document is independently assigned a decision score indicating likelihood of satisfying the boolean semantic predicate. The cascade then classifies each document individually as positive, negative, or ambiguous based on threshold comparison.
+        <span class="src">Section 2.1, Section 4.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-4">
+      <h4>4. Predicate Transformation Layer</h4>
+      <p>The natural language predicate is not decomposed but rather encoded alongside documents into a shared latent space via the <strong>contrastive learning framework</strong>. The predicate is transformed into a query embedding that serves as an anchor. Decision scores are cosine similarities in the learned space, designed to satisfy <strong>smoothness</strong>, <strong>semantic monotonicity</strong>, and <strong>bipolarity</strong> properties.
+        <span class="src">Section 3.1, Section 3.2</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-5">
+      <h4>5. Calibration / Sampling Layer</h4>
+      <p><strong>ScaleDoc</strong> samples ~5% of documents via <strong>stratified sampling</strong> across score bins, labels them with the oracle, then reconstructs global positive/negative score distributions using <strong>jittering</strong> (for information recovery), <strong>linear interpolation density estimation</strong>, and <strong>moving average smoothing</strong>. This calibration enables accurate accuracy estimation for any threshold pair from a small sample.
+        <span class="src">Section 4.2, Algorithm 1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-6">
+      <h4>6. Routing / Action Layer</h4>
+      <p>Documents with scores above upper threshold <strong>rb</strong> are classified positive; below lower threshold <strong>lb</strong> are classified negative; those in [lb, rb] are routed to the <strong>oracle LLM</strong>. Thresholds are selected via an efficient <strong>Pareto frontier traversal algorithm</strong> (Algorithm 2) that minimizes unfiltered rate subject to accuracy constraint, with linear complexity.
+        <span class="src">Section 4.1, Section 4.3, Algorithm 2</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-7">
+      <h4>7. Guarantee Layer</h4>
+      <p>Users specify an accuracy target α (e.g., 0.90). The system uses reconstructed score distributions to estimate accuracy for candidate thresholds. Empirical validation shows ScaleDoc meets α=0.90 in <strong>>80% of trials</strong> with worst-case accuracy loss of only 0.04. No formal statistical guarantee is provided; the guarantee is empirical via calibration.
+        <span class="src">Section 4.2, Section 6.5, Figure 10(a)</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- METHOD COMPONENTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#2d5a27">M</span> Method Components</div>
+  <div class="card">
+    <details open>
+      <summary>Offline Representation Phase</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A one-time compute-intensive phase where a small-scale LLM (e.g., <strong>NvEmbed</strong> derived from Mistral-7B) generates <strong>semantic embeddings</strong> for each document. These embeddings are stored and reused across all ad-hoc queries, eliminating redundant document-level LLM processing.
+        <span class="src">Section 2.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Query-Aware Proxy Model</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A <strong>lightweight 3-layer MLP encoder</strong> $E(\cdot)$ trained online for each ad-hoc query using <strong>contrastive learning</strong>. It maps pre-computed document and query embeddings into a shared latent space, producing <strong>cosine similarity decision scores</strong>. Training uses a small oracle-labeled sample (~5-10%).
+        <span class="src">Section 3.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Two-Phase Contrastive Training</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)"><strong>Phase 1</strong> uses $\mathcal{L}_{qsim}$ (DPR-inspired contrastive loss) to establish <strong>semantic monotonicity</strong> by pulling positive documents closer to the query anchor. <strong>Phase 2</strong> uses $\mathcal{L}_{supcon}$ (supervised contrastive loss for intra-class clustering) and a novel $\mathcal{L}_{polar}$ (<strong>bellwether-guided polar loss</strong>) to enforce <strong>bipolarity</strong> — clear separation between positive and negative score distributions.
+        <span class="src">Section 3.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Bellwether Polar Loss (L_polar)</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A <strong>novel loss function</strong> that selects <strong>bellwether samples</strong> — the closest positive and furthest negative to the query in each mini-batch — as anchors. It pulls all positives toward the positive bellwether and all negatives toward the negative bellwether, explicitly enlarging the separation margin between classes.
+        <span class="src">Section 3.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Ad-hoc Calibration Workflow</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Reconstructs global score distributions from a small labeled sample via three steps: (1) <strong>stratified sampling</strong> to preserve density across score bins, (2) <strong>jittering</strong> for information recovery in low-density regions, (3) <strong>linear interpolation density estimation</strong> followed by <strong>moving average smoothing</strong> to produce robust continuous PDFs for positive and negative classes.
+        <span class="src">Section 4.2, Algorithm 1</span>
+      </p>
+    </details>
+    <details>
+      <summary>Frontier-Based Threshold Selection</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">An efficient algorithm that solves the constrained optimization problem (minimize unfiltered rate subject to accuracy target) by tracing the <strong>Pareto frontier</strong> of feasible threshold pairs. Reduces complexity from quadratic to <strong>linear</strong> in the number of discretization steps.
+        <span class="src">Section 4.3, Algorithm 2</span>
+      </p>
+    </details>
+    <details>
+      <summary>Training Set Rebalancing</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A <strong>fallback-style rebalancing method</strong> that augments minority class samples by adding <strong>Gaussian noise</strong> to existing minority class embeddings when class imbalance is detected in the initial sample.
+        <span class="src">Section 5</span>
+      </p>
+    </details>
+  </div>
+</div>
+
+<!-- THEORETICAL RESULTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">T</span> Theoretical Results</div>
+  <div class="card">
+    <div class="cmp">
+      <span class="cmp-label">Bound</span>
+      <span class="cmp-val">The frontier-based threshold selection algorithm reduces complexity from quadratic to linear with respect to the number of discretization steps, and the optimal solution lies on the Pareto-frontier of the feasible set defined by the accuracy constraint.
+        <span class="src">Section 4.3</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- KEY FORMULAS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">Q</span> Key Formulas</div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 1</span>
+    <span class="src">Section 3.2</span>
+    <div class="formula-latex">\[\mathcal{L}_{qsim}(q,\{d^{+}_{i}\}_{i=1}^{m},\{d^{-}_{j}\}_{j=1}^{n-m})=-\log\frac{\sum_{i=1}^{m}{e^{\text{sim}(q,d^{+}_{i})/\tau}}}{\sum_{j=1}^{n-m}{e^{\text{sim}(q,d^{-}_{j})/\tau}+\sum_{i=1}^{m}{e^{\text{sim}(q,d^{+}_{i})/\tau}}}}\]</div>
+    <div class="formula-desc">Query-similarity contrastive loss (Phase 1) that pulls positive documents closer to the query while pushing negatives away, establishing semantic monotonicity.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 2</span>
+    <span class="src">Section 3.2</span>
+    <div class="formula-latex">\[\mathcal{L}_{supcon}(\{d_{i}\})=-\sum_{i=1}^{n}\frac{1}{|U(i)|}\log\frac{\sum_{d_{p}\in U(i)}e^{\text{sim}(d_{i},d_{p})/\tau}}{\sum_{d_{k}\in A(i)}e^{\text{sim}(d_{i},d_{k})/\tau}}\]</div>
+    <div class="formula-desc">Supervised contrastive loss (Phase 2) that encourages intra-class clustering by pulling same-label documents together.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 3</span>
+    <span class="src">Section 3.2</span>
+    <div class="formula-latex">\[\mathcal{L}_{polar}(q,\{d^{+}_{i}\}_{i=1}^{m},\{d^{-}_{j}\}_{j=1}^{n-m})=-(\log\frac{\sum_{i=1}^{m}{e^{\text{sim}(d_{pos},d^{+}_{i})/\tau}}}{\sum_{j=1}^{n-m}{e^{\text{sim}(d_{pos},d^{-}_{j})/\tau}+\sum_{i=1}^{m}{e^{\text{sim}(d_{pos},d^{+}_{i})/\tau}}}}+\log\frac{\sum_{i=1}^{n-m}{e^{\text{sim}(d_{neg},d^{-}_{i})/\tau}}}{\sum_{j=1}^{n-m}{e^{\text{sim}(d_{neg},d^{-}_{j})/\tau}+\sum_{i=1}^{m}{e^{\text{sim}(d_{neg},d^{+}_{i})/\tau}}}}})\]</div>
+    <div class="formula-desc">Novel bellwether polar loss (Phase 2) that uses bellwether anchors to explicitly enforce bipolar separation between positive and negative document clusters.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 4</span>
+    <span class="src">Section 4.1</span>
+    <div class="formula-latex">\[u(lb,rb)=\frac{|\{s_{i}\in S(W)\mid lb\leq s_{i}\leq rb\}|}{|S(W)|}\]</div>
+    <div class="formula-desc">Unfiltered rate — the fraction of documents sent to the oracle LLM, controlled by lower and upper thresholds.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 5</span>
+    <span class="src">Section 4.1</span>
+    <div class="formula-latex">\[\min_{(lb,rb)\in\mathcal{K}}u(lb,rb)\quad\text{s.t.}\;\text{Acc}(lb,rb)\geq\alpha\]</div>
+    <div class="formula-desc">Constrained optimization problem: minimize unfiltered rate while meeting user-specified accuracy target α.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Phase 2 Joint Loss</span>
+    <span class="src">Section 5</span>
+    <div class="formula-latex">\[\mathcal{L}_{2}=\lambda\cdot\mathcal{L}_{supcon}+(1-\lambda)\cdot\mathcal{L}_{polar}\]</div>
+    <div class="formula-desc">Joint loss for Training Phase 2, with λ=0.2 empirically balancing supervised contrastive and polar losses.</div>
+  </div>
+</div>
+
+<!-- KEY FIGURES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">G</span> Key Figures</div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 1
+      <span class="src">Figure 1</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2509.12610/assets/x1.png" alt="Figure 1" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> A detailed workflow of ScaleDoc</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows the complete offline-online architecture: offline phase generates document embeddings via LLM encoder; online phase trains query-aware lightweight encoder, produces decision scores, then applies cascade filtering with calibration-based thresholds.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 2
+      <span class="src">Figure 2</span>
+    </div>
+    <div class="fig-caption"><strong>Caption:</strong> Example score distributions of different lightweight proxies</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Contrasts poor score distribution (Llama-3.2-3B logprobs with overlapping positive/negative peaks) vs ScaleDoc&#39;s well-separated bipolar distribution, illustrating why well-behaved scores are critical for effective data reduction.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 4
+      <span class="src">Figure 4</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2509.12610/assets/x5.png" alt="Figure 4" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> End-to-end latencies and data reduction rate</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Bar charts showing ScaleDoc&#39;s superior performance across all three datasets at α=0.90, with significantly lower latency and higher data reduction than all baselines including LLM cascades and PPs.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 5
+      <span class="src">Figure 5</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2509.12610/assets/x6.png" alt="Figure 5" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Breakdown for different pipelines, measuring average latencies in each stage</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Granular latency breakdown on PubMed showing that LLM cascade proxies have prohibitive inference costs, while ScaleDoc&#39;s lightweight proxy has minimal training and inference overhead. Traditional TF-IDF+SVM can outperform LLM cascades due to lower computational cost.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 6
+      <span class="src">Figure 6</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2509.12610/assets/x7.png" alt="Figure 6" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Accuracy-Latency tradeoff on three datasets</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows ScaleDoc consistently achieves lower latency across accuracy targets 0.80-0.96, with larger latency reduction at relaxed targets due to well-behaved score distributions enabling more effective filtering.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 7
+      <span class="src">Figure 7</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2509.12610/assets/x8.png" alt="Figure 7" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Pseudo end-to-end data reductions on different workloads</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Ablation study isolating proxy model quality using brute-force optimal cascade. Shows ScaleDoc&#39;s full training (all three losses) significantly outperforms MLP baseline and individual loss ablations, with ~20% average improvement.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 9
+      <span class="src">Figure 9</span>
+    </div>
+    <img src="https://ar5iv.labs.arxiv.org/html/2509.12610/assets/x10.png" alt="Figure 9" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Average score distribution of positives and negatives</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Visualizes how different loss combinations shape score distributions. L_qsim alone produces overlapping distributions; adding L_supcon creates tight clusters but with tail artifacts; L_polar provides cleaner tail separation; combined achieves best bipolarity.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 10
+      <span class="src">Figure 10</span>
+    </div>
+    <div class="fig-caption"><strong>Caption:</strong> Zero-shot cascade accuracy and data reduction rate</div>
+    <div class="fig-caption" style="margin-top:0.25rem">(a) Shows ScaleDoc&#39;s calibration meets α=0.90 in &gt;80% of 100 trials vs naive failing ~50%. (b) Shows ScaleDoc consistently outperforms SUPG in data reduction across workloads.</div>
+  </div>
+</div>
+
+<!-- KEY TABLES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">B</span> Key Tables</div>
+  <div class="card">
+    <div class="card-title">Table 1
+      <span class="src">Table 1</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Dataset Characteristics</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Dataset</th>
+          <th>Content</th>
+          <th>Avg. Word Count</th>
+          <th>Example Query</th>
+        </tr>
+        <tr>
+          <td>PubMed</td>
+          <td>Abstracts from medical papers</td>
+          <td>413</td>
+          <td>Report efficacy of a certain medicine?</td>
+        </tr>
+        <tr>
+          <td>BigPatent</td>
+          <td>Summaries on U.S. patent documents</td>
+          <td>129</td>
+          <td>Introduce inventions of cross-sectional technology?</td>
+        </tr>
+        <tr>
+          <td>GovReport</td>
+          <td>Reports from government</td>
+          <td>621</td>
+          <td>About environment protection?</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Summarizes three datasets: PubMed (413 avg words), BigPatent (129 avg words), GovReport (621 avg words), each with 10,000 documents and 20 manually crafted queries.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 2
+      <span class="src">Table 2</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">JSD between reconstructed distribution and ground truth</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th></th>
+          <th>N-p</th>
+          <th>N-n</th>
+          <th>IS-p</th>
+          <th>IS-n</th>
+          <th>B-p</th>
+          <th>B-n</th>
+          <th>SD-p</th>
+          <th>SD-n</th>
+        </tr>
+        <tr>
+          <td>Mean</td>
+          <td>0.30</td>
+          <td>0.11</td>
+          <td>0.34</td>
+          <td>0.18</td>
+          <td>0.50</td>
+          <td>0.38</td>
+          <td>0.20</td>
+          <td>0.09</td>
+        </tr>
+        <tr>
+          <td>Median</td>
+          <td>0.32</td>
+          <td>0.08</td>
+          <td>0.33</td>
+          <td>0.17</td>
+          <td>0.42</td>
+          <td>0.43</td>
+          <td>0.16</td>
+          <td>0.08</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Validates ScaleDoc's density estimator (SD) achieves lowest JSD (0.20/0.09 mean for positive/negative) compared to Naive (0.30/0.11), Importance Sampling (0.34/0.18), and Beta distribution (0.50/0.38), confirming faithful distribution reconstruction.</p>
+    </details>
+  </div>
+</div>
+
+<!-- EXPERIMENTAL SETUP -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">E</span> Experimental Setup</div>
+
+  <div class="card">
+    <div class="card-title">Datasets (3)</div>
+    <table>
+      <tr><th>Dataset</th><th>Domain</th><th>Size</th><th>Source</th></tr>
+      <tr>
+        <td>PubMed</td>
+        <td>Medical research abstracts</td>
+        <td class="num">10,000 documents</td>
+        <td><span class="src">Section 6.1, Table 1</span></td>
+      </tr>
+      <tr>
+        <td>BigPatent</td>
+        <td>U.S. patent documents</td>
+        <td class="num">10,000 documents</td>
+        <td><span class="src">Section 6.1, Table 1</span></td>
+      </tr>
+      <tr>
+        <td>GovReport</td>
+        <td>Government reports</td>
+        <td class="num">10,000 documents</td>
+        <td><span class="src">Section 6.1, Table 1</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Baselines (6)</div>
+    <div class="cmp">
+      <span class="cmp-label">Oracle Only</span>
+      <span class="cmp-val">Processes every document directly using the oracle LLM (GPT-4o) without any filtering. <span class="src">Section 6.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Probabilistic Predicates (PPs)</span>
+      <span class="cmp-val">Traditional lightweight ML models as proxies using combinations of &lt;strong&gt;BoW/TF-IDF&lt;/strong&gt; text representation, &lt;strong&gt;PCA/Feature Hashing&lt;/strong&gt; dimensionality reduction, and &lt;strong&gt;SVM/KDE&lt;/strong&gt; classifiers. Best-performing combination reported. <span class="src">Section 6.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">LLM Cascade (Llama-3.2-1B + Oracle)</span>
+      <span class="cmp-val">Single-stage cascade using &lt;strong&gt;Llama-3.2-1B&lt;/strong&gt; as proxy with log-probability confidence scores, forwarding uncertain cases to GPT-4o oracle. <span class="src">Section 6.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">LLM Cascade (Llama-3.2-3B + Oracle)</span>
+      <span class="cmp-val">Single-stage cascade using &lt;strong&gt;Llama-3.2-3B&lt;/strong&gt; as proxy with log-probability confidence scores. <span class="src">Section 6.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">LLM Cascade (Llama-3.2-1B + Llama-3.2-3B + Oracle)</span>
+      <span class="cmp-val">Two-stage cascade: 1B model filters for 3B proxy, which filters for GPT-4o oracle. <span class="src">Section 6.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">SUPG</span>
+      <span class="cmp-val">Algorithm using &lt;strong&gt;Importance Sampling&lt;/strong&gt; and statistical bounds for threshold selection, adopted in existing systems like Lotus. <span class="src">Section 6.5</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key Results</div>
+    <table>
+      <tr><th>Description</th><th>Metric</th><th>Value</th><th>Source</th></tr>
+      <tr>
+        <td>ScaleDoc achieves over <strong>2× end-to-end speedup</strong> on average across three datasets compared to all baselines at accuracy target α=0.90.</td>
+        <td>End-to-end latency</td>
+        <td class="num ">&gt;2x speedup</td>
+        <td><span class="src">Figure 4, Abstract</span></td>
+      </tr>
+      <tr>
+        <td>ScaleDoc reduces costly LLM oracle invocations by up to <strong>85%</strong>, corresponding to <strong>6.6× cost-saving</strong>.</td>
+        <td>Data reduction rate</td>
+        <td class="num ">up to 85%</td>
+        <td><span class="src">Section 6.2, Abstract</span></td>
+      </tr>
+      <tr>
+        <td>ScaleDoc's contrastive training achieves <strong>~20% average increase</strong> in data reduction compared to naive MLP binary classifier baseline.</td>
+        <td>Data reduction rate</td>
+        <td class="num ">~20% improvement</td>
+        <td><span class="src">Section 6.4, Figure 7</span></td>
+      </tr>
+      <tr>
+        <td>ScaleDoc's ad-hoc calibration meets accuracy target α=0.90 in <strong>>80% of trials</strong> (100 trials on 15 workloads), with worst-case accuracy loss of only <strong>0.04</strong>, compared to naive approach failing in nearly half of trials.</td>
+        <td>Accuracy</td>
+        <td class="num ">&gt;80% success rate</td>
+        <td><span class="src">Section 6.5, Figure 10(a)</span></td>
+      </tr>
+      <tr>
+        <td>ScaleDoc's density estimator achieves lowest JSD: mean <strong>0.20</strong> (positive) and <strong>0.09</strong> (negative) vs Naive (0.30/0.11), IS (0.34/0.18), Beta (0.50/0.38).</td>
+        <td>JSD</td>
+        <td class="num ">0.20/0.09 (mean p/n)</td>
+        <td><span class="src">Table 2</span></td>
+      </tr>
+      <tr>
+        <td>ScaleDoc consistently outperforms <strong>SUPG</strong> in data reduction across various workloads, demonstrating more reliable and generalized performance.</td>
+        <td>Data reduction rate</td>
+        <td class="num ">consistently higher</td>
+        <td><span class="src">Section 6.5, Figure 10(b)</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Metrics</div>
+    <div class="cmp">
+      <span class="cmp-label">End-to-end latency</span>
+      <span class="cmp-val">Total online processing time including training, calibration, proxy inference, and oracle invocations. <span class="src">Section 6.2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Data reduction rate</span>
+      <span class="cmp-val">Percentage of documents that do not require the LLM oracle call, indicating cost-saving. <span class="src">Section 6.2, Figure 4</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Accuracy</span>
+      <span class="cmp-val">Correctness of final predicate assignments compared to oracle ground truth labels. <span class="src">Section 2.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Unfiltered rate</span>
+      <span class="cmp-val">Fraction of documents sent to the oracle LLM, u(lb,rb). <span class="src">Section 4.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Jensen-Shannon Distance (JSD)</span>
+      <span class="cmp-val">Measures discrepancy between reconstructed score distribution and ground truth full distribution for density estimator validation. <span class="src">Section 6.5, Table 2</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Experimental Settings</div>
+    <div class="cmp"><span class="cmp-label">Oracle Model</span><span class="cmp-val">GPT-4o (via Azure-OpenAI API, 150k tokens/min rate limit)</span></div>
+    <div class="cmp"><span class="cmp-label">Proxy Models</span><span class="cmp-val">3-layer MLP encoder (ScaleDoc), Llama-3.2-1B, Llama-3.2-3B, SVM/KDE classifiers (PPs)</span></div>
+    <div class="cmp"><span class="cmp-label">Hardware</span><span class="cmp-val">NVIDIA A10 GPU for lightweight model inference</span></div>
+    <div class="cmp"><span class="cmp-label">Accuracy Target</span><span class="cmp-val">0.90 (default), range 0.80-0.96 tested</span></div>
+  </div>
+</div>
+
+<!-- ANALYSIS (Level 2 only) -->
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">The oracle LLM (GPT-4o) provides ground-truth labels — its predictions are treated as the gold standard for accuracy measurement.
+          <span class="src">Section 6.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Documents can be meaningfully represented as fixed-dimensional semantic embeddings that capture sufficient information for predicate evaluation.
+          <span class="src">Section 2.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">The offline embedding phase is a one-time cost that is amortized across many ad-hoc queries, making it acceptable.
+          <span class="src">Section 2.2, Section 6.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">A small sample (~5-10%) is sufficient to train the proxy model and calibrate the cascade for each query.
+          <span class="src">Section 5, Section 6.6</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">The score distributions produced by the contrastive learning framework exhibit monotonic properties that enable the frontier-based threshold selection algorithm to find optimal solutions.
+          <span class="src">Section 4.3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Boolean (binary) semantic predicates are the target workload — multi-class or continuous-valued predicates are not addressed.
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The accuracy guarantee is empirical (>80% of trials meet target) rather than providing formal statistical guarantees like SUPG's theoretical bounds.
+          <span class="src">Section 6.5</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">Formal proofs of optimality for the threshold selection algorithm are deferred to an extended version.
+          <span class="src">Section 4.3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Inferred</span>
+        <span class="cmp-val">The system is evaluated only on collections of 10,000 documents; scalability to millions of documents (as mentioned in motivation) is not directly demonstrated.
+          <span class="src">Section 6.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The offline embedding phase requires a one-time LLM inference pass over all documents, which may be costly for very large corpora.
+          <span class="src">Section 6.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Inferred</span>
+        <span class="cmp-val">Only boolean semantic predicates are supported; more complex semantic operators (join, aggregation) are not addressed.
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Inferred</span>
+        <span class="cmp-val">The proxy model must be retrained for each new ad-hoc query, adding per-query overhead.
+          <span class="src">Section 3.2</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#4a2d7a">X</span> Cross-Reference with Anchor Papers</div>
+    <div class="card">
+      <table>
+        <tr><th>Anchor Paper</th><th>Relationship</th><th>Detail</th><th>Source</th></tr>
+        <tr>
+          <td>lotus</td>
+          <td>Extends</td>
+          <td>ScaleDoc addresses the same semantic predicate filtering task as &lt;strong&gt;Lotus&lt;/strong&gt; but replaces Lotus&#39;s LLM-based proxy approach with a much more lightweight contrastive-learning MLP proxy. ScaleDoc also compares against SUPG, the cascade algorithm adopted by Lotus, showing superior data reduction. Lotus is cited as using smaller LLMs as filtering proxies which remain too expensive for large-scale applications.</td>
+          <td><span class="src">Section 1, Section 6.5, Section 7</span></td>
+        </tr>
+        <tr>
+          <td>task_cascades</td>
+          <td>Complements</td>
+          <td>Both ScaleDoc and task cascades use proxy-oracle cascade architectures to reduce expensive LLM invocations. ScaleDoc focuses specifically on document-level boolean predicates with contrastive learning proxies, while task cascades generalize the cascade concept across different task types. ScaleDoc&#39;s adaptive threshold selection addresses similar challenges of determining when to route to the oracle.</td>
+          <td><span class="src">Section 7</span></td>
+        </tr>
+        <tr>
+          <td>bargain</td>
+          <td>Complements</td>
+          <td>Both systems aim to reduce LLM costs while meeting accuracy targets for data processing. ScaleDoc uses contrastive-learning proxy with empirical calibration guarantees, while BARGAIN provides formal statistical guarantees. ScaleDoc&#39;s calibration approach (stratified sampling + distribution reconstruction) addresses similar challenges of estimating accuracy from small samples.</td>
+          <td><span class="src">Section 4.2, Section 6.5</span></td>
+        </tr>
+        <tr>
+          <td>thriftllm</td>
+          <td>Complements</td>
+          <td>Both address cost-effective LLM selection/routing for classification tasks. ThriftLLM focuses on selecting among multiple LLMs, while ScaleDoc uses a non-LLM lightweight proxy to filter before a single oracle LLM, targeting a different point in the cost-accuracy tradeoff space.</td>
+          <td><span class="src">Section 7</span></td>
+        </tr>
+        <tr>
+          <td>csv</td>
+          <td>Complements</td>
+          <td>Both ScaleDoc and CSV address efficient semantic filtering with proxy models. CSV explores beyond linear LLM invocation patterns, while ScaleDoc specifically decouples offline representation from online filtering with contrastive learning. Both aim to reduce the number of expensive LLM calls for semantic predicates.</td>
+          <td><span class="src">Section 1, Section 7</span></td>
+        </tr>
+        <tr>
+          <td>nirvana</td>
+          <td>Complements</td>
+          <td>Both systems deal with semantic-aware analytics over unstructured data. ScaleDoc focuses specifically on scaling boolean predicates over document collections, while Nirvana addresses broader multi-modal semantic analytics.</td>
+          <td><span class="src">Section 7</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Deep Paper Review — Research Paper Toolkit v0.1</p>
+  <p>Extraction date: 2026-03-30 | Level 2 | <span class="src">source tags</span> indicate extraction provenance</p>
+  <p style="margin-top:0.5rem"><span class="src src-missing">orange tags</span> = information not found, needs verification</p>
+</div>
+
+</div>
+</body>
+</html>

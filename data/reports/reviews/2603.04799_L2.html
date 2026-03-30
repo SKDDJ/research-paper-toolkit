@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Deep Review — Beyond Linear LLM Invocation: An Efficient and Effective Semantic Filter Paradigm</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --border: #e8e6e1; --text: #1a1a1a;
+  --muted: #6b6860; --accent: #2d5a27; --accent-bg: #eef4ed; --accent-border: #c2d9bf;
+  --warn: #8b5e00; --warn-bg: #fef7ec; --warn-border: #f0d9a0;
+  --danger: #8b1a1a; --danger-bg: #fdf0f0;
+  --blue: #1a4f8b; --blue-bg: #edf3fb; --blue-border: #b8d0eb;
+  --purple: #4a2d7a; --purple-bg: #f3eff8;
+  --radius: 6px; --font: 'DM Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif; --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.paper-header { margin-bottom: 2rem; }
+.paper-header h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 500; }
+.badge-venue { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.badge-year { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-level { background: var(--purple-bg); color: var(--purple); border: 1px solid #d4c8e8; }
+.authors { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.25rem; }
+.authors strong { color: var(--text); font-weight: 500; }
+.institution { font-size: 0.8rem; color: var(--muted); }
+.links { margin-top: 0.5rem; display: flex; gap: 0.75rem; }
+.links a { font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; }
+.links a:hover { text-decoration: underline; }
+.section { margin-bottom: 1.5rem; }
+.section-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.section-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: white; flex-shrink: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+.card-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.src { display: inline-block; font-size: 0.65rem; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; background: #f0eeea; color: var(--muted); margin-left: 4px; cursor: help; border: 1px solid var(--border); }
+.src-missing { background: var(--danger-bg); color: var(--danger); border-color: #e8c0c0; }
+.framework-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+@media (max-width: 600px) { .framework-grid { grid-template-columns: 1fr; } }
+.fw-cell { padding: 0.75rem; border-radius: var(--radius); border-left: 3px solid; }
+.fw-cell h4 { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.fw-cell p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.fw-1 { background: #f0f7ff; border-color: #3b82f6; } .fw-1 h4 { color: #1e40af; }
+.fw-2 { background: #fef7f0; border-color: #f59e0b; } .fw-2 h4 { color: #92400e; }
+.fw-3 { background: #f0fdf4; border-color: #22c55e; } .fw-3 h4 { color: #166534; }
+.fw-4 { background: #fdf2f8; border-color: #ec4899; } .fw-4 h4 { color: #9d174d; }
+.fw-5 { background: #f5f3ff; border-color: #8b5cf6; } .fw-5 h4 { color: #5b21b6; }
+.fw-6 { background: #fffbeb; border-color: #eab308; } .fw-6 h4 { color: #854d0e; }
+.fw-7 { background: #fef2f2; border-color: #ef4444; } .fw-7 h4 { color: #991b1b; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.75rem; background: #f5f4f0; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf9f6; }
+.num { font-family: var(--mono); font-size: 0.8rem; }
+.best { font-weight: 600; color: var(--accent); }
+details { margin-bottom: 0.5rem; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius); }
+details summary:hover { background: #f5f4f0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.callout { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.75rem; font-size: 0.85rem; line-height: 1.6; }
+.callout-insight { background: var(--accent-bg); border: 1px solid var(--accent-border); }
+.callout-caution { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+.callout-label { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; display: block; }
+.callout-insight .callout-label { color: var(--accent); }
+.callout-caution .callout-label { color: var(--warn); }
+.cmp { display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.25rem; font-size: 0.82rem; }
+.cmp-label { font-weight: 500; min-width: 100px; flex-shrink: 0; }
+.cmp-val { color: var(--muted); }
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+/* Emphasis for key terms and values */
+.card strong, .fw-cell strong, .cmp-val strong { color: var(--text); font-weight: 600; }
+.key-value { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+
+/* Formula blocks */
+.formula-card { background: #f8f7f4; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+.formula-card .formula-id { font-family: var(--mono); font-size: 0.75rem; color: var(--blue); font-weight: 600; }
+.formula-card .formula-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.25rem; }
+.formula-card .formula-latex { font-size: 1rem; margin: 0.5rem 0; }
+
+/* Table rendering within key tables */
+.card table { margin-top: 0.5rem; }
+.card table td { font-family: var(--mono); font-size: 0.78rem; }
+
+/* Figure cards */
+.figure-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; margin-bottom: 0.5rem; }
+.figure-card img { max-width: 100%; border-radius: 4px; margin-bottom: 0.5rem; }
+.figure-card .fig-caption { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+.figure-card .fig-id { font-weight: 600; font-size: 0.82rem; margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="paper-header">
+  <h1>Beyond Linear LLM Invocation: An Efficient and Effective Semantic Filter Paradigm</h1>
+  <div class="meta-row">
+    <span class="badge badge-venue">arXiv preprint</span>
+    <span class="badge badge-year">2026</span>
+    <span class="badge badge-level">Level 2 Review</span>
+  </div>
+  <div class="authors">
+    Nan Hou,     Kangfei Zhao,     Jiadong Xie,     Jeffrey Xu Yu  </div>
+  <div class="institution">The Chinese University of Hong Kong</div>
+  <div class="links">
+    <a href="https://arxiv.org/abs/2603.04799">arXiv</a>
+    <a href="https://arxiv.org/pdf/2603.04799.pdf">PDF</a>
+    <a href="10.48550/arXiv.2603.04799">DOI</a>
+  </div>
+</div>
+
+<!-- CORE CONTRIBUTION -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">S</span> Core Contribution</div>
+  <div class="card">
+    <p style="font-size:0.9rem">The paper proposes <strong>Clustering-Sampling-Voting (CSV)</strong>, a framework that reduces LLM invocations for semantic filtering from linear to <strong>sublinear complexity</strong> while providing <strong>error guarantees</strong>. CSV embeds tuples into <strong>semantic clusters</strong>, samples a small subset for LLM evaluation, and infers cluster-level labels via two voting strategies: <strong>UniVote</strong> (uniform aggregation) and <strong>SimVote</strong> (similarity-weighted voting), with <strong>re-clustering</strong> on ambiguous clusters to ensure robustness.
+      <span class="src">abstract</span>
+    </p>
+  </div>
+</div>
+
+<!-- FRAMEWORK MAPPING (Level 2 only) -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Mapping to Dr. Lan&#39;s 7-Layer Semantic Filter Framework</div>
+  <div class="framework-grid">
+    <div class="fw-cell fw-1">
+      <h4>1. Data Representation Layer</h4>
+      <p>Tuples from the table are embedded into a <strong>semantic space</strong> to enable clustering. The representation captures semantic similarity between tuples with respect to the natural language predicate.
+        <span class="src">abstract</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-2">
+      <h4>2. Candidate Executor / Proxy Layer</h4>
+      <p>An <strong>embedding model</strong> serves as the proxy to compute semantic representations and cluster tuples, while the <strong>LLM</strong> serves as the oracle executor invoked only on sampled tuples. This creates a two-tier system where the embedding-based clustering acts as a lightweight proxy to reduce expensive LLM calls.
+        <span class="src">abstract</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-3">
+      <h4>3. Unit of Decision Layer</h4>
+      <p>Rather than making decisions <strong>tuple-by-tuple</strong> (as in standard semantic filtering), CSV makes decisions at the <strong>cluster level</strong>, inferring labels for all tuples in a cluster based on sampled evaluations. This is the key insight enabling sublinear invocations.
+        <span class="src">abstract</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-4">
+      <h4>4. Predicate Transformation Layer</h4>
+      <p>The natural language predicate <strong>e</strong> is used directly in prompts for sampled tuples. The transformation is implicit: the predicate's semantics are captured through the <strong>embedding space</strong> used for clustering, but the predicate itself is not decomposed or rewritten.
+        <span class="src">abstract</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-5">
+      <h4>5. Calibration / Sampling Layer</h4>
+      <p>CSV <strong>samples a small subset</strong> from each semantic cluster for LLM evaluation. When clusters are <strong>ambiguous</strong> (mixed positive/negative), re-clustering is triggered to refine the groupings. This adaptive sampling strategy ensures that the sample is representative of cluster-level semantics.
+        <span class="src">abstract</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-6">
+      <h4>6. Routing / Action Layer</h4>
+      <p>After sampling, labels are propagated to unsampled tuples via <strong>UniVote</strong> (uniform majority voting) or <strong>SimVote</strong> (similarity-weighted voting). The routing decision is whether to accept the cluster-level vote or trigger <strong>re-clustering</strong> for ambiguous clusters.
+        <span class="src">abstract</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-7">
+      <h4>7. Guarantee Layer</h4>
+      <p>CSV provides <strong>error guarantees</strong> on the semantic filtering results, ensuring that the sublinear approximation maintains bounded error relative to full linear evaluation. The specific form of guarantees (probabilistic bounds, worst-case, etc.) is described in the full paper.
+        <span class="src">abstract</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- METHOD COMPONENTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#2d5a27">M</span> Method Components</div>
+  <div class="card">
+    <details open>
+      <summary>Semantic Clustering</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Tuples are embedded into a semantic space and grouped into <strong>semantic clusters</strong> based on their embeddings, enabling batch-level reasoning rather than tuple-by-tuple LLM evaluation.
+        <span class="src">abstract</span>
+      </p>
+    </details>
+    <details>
+      <summary>Sampling</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A <strong>small subset</strong> of tuples is sampled from each cluster for LLM evaluation, reducing the total number of LLM invocations to <strong>sublinear</strong> in the table size.
+        <span class="src">abstract</span>
+      </p>
+    </details>
+    <details>
+      <summary>UniVote</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A voting strategy that <strong>aggregates labels uniformly</strong> across sampled tuples within a cluster to infer the cluster-level label.
+        <span class="src">abstract</span>
+      </p>
+    </details>
+    <details>
+      <summary>SimVote</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A voting strategy that <strong>weights votes by semantic similarity</strong> between sampled tuples and other cluster members, providing more nuanced label inference.
+        <span class="src">abstract</span>
+      </p>
+    </details>
+    <details>
+      <summary>Re-clustering</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">CSV triggers <strong>re-clustering on ambiguous clusters</strong> to ensure robustness across diverse datasets, handling cases where initial clustering does not cleanly separate positive and negative tuples.
+        <span class="src">abstract</span>
+      </p>
+    </details>
+  </div>
+</div>
+
+<!-- THEORETICAL RESULTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">T</span> Theoretical Results</div>
+  <div class="card">
+    <div class="cmp">
+      <span class="cmp-label">Guarantee</span>
+      <span class="cmp-val">CSV reduces LLM invocations to <strong>sublinear complexity</strong> while providing <strong>error guarantees</strong>.
+        <span class="src">abstract</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- KEY FORMULAS -->
+
+<!-- KEY FIGURES -->
+
+<!-- KEY TABLES -->
+
+<!-- EXPERIMENTAL SETUP -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">E</span> Experimental Setup</div>
+
+  <div class="card">
+    <div class="card-title">Datasets (1)</div>
+    <table>
+      <tr><th>Dataset</th><th>Domain</th><th>Size</th><th>Source</th></tr>
+      <tr>
+        <td>Real-world datasets</td>
+        <td>Various</td>
+        <td class="num">None</td>
+        <td><span class="src">abstract</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Baselines (1)</div>
+    <div class="cmp">
+      <span class="cmp-label">State-of-the-art semantic filter approaches</span>
+      <span class="cmp-val">Existing approaches for semantic filtering that require &lt;strong&gt;linear LLM invocations&lt;/strong&gt; (tuple-by-tuple evaluation). Specific baseline names not available from abstract alone. <span class="src">abstract</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key Results</div>
+    <table>
+      <tr><th>Description</th><th>Metric</th><th>Value</th><th>Source</th></tr>
+      <tr>
+        <td>CSV reduces the number of LLM calls by <strong>1.28-355x</strong> compared to state-of-the-art approaches while maintaining comparable <strong>Accuracy</strong> and <strong>F1 score</strong>.</td>
+        <td>LLM call reduction</td>
+        <td class="num ">1.28-355x</td>
+        <td><span class="src">abstract</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Metrics</div>
+    <div class="cmp">
+      <span class="cmp-label">Accuracy</span>
+      <span class="cmp-val">Proportion of correctly classified tuples (positive/negative) by the semantic filter. <span class="src">abstract</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">F1 Score</span>
+      <span class="cmp-val">Harmonic mean of precision and recall for the semantic filter classification. <span class="src">abstract</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Number of LLM calls</span>
+      <span class="cmp-val">Total number of LLM invocations required to process the entire table, measuring efficiency. <span class="src">abstract</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Experimental Settings</div>
+    <div class="cmp"><span class="cmp-label">Accuracy Target</span><span class="cmp-val">Comparable accuracy and F1 to full linear evaluation</span></div>
+  </div>
+</div>
+
+<!-- ANALYSIS (Level 2 only) -->
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Implicit</span>
+        <span class="cmp-val">Tuples that are semantically similar (in embedding space) are likely to have the same filter label with respect to the natural language predicate.
+          <span class="src">abstract</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Implicit</span>
+        <span class="cmp-val">Semantic embeddings can capture the relevant aspects of tuple content for the given predicate, enabling meaningful clustering.
+          <span class="src">abstract</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Inferred</span>
+        <span class="cmp-val">Only abstract and metadata are available for extraction; full paper details on theoretical guarantees, specific datasets, baselines, and experimental configurations could not be extracted.
+          <span class="src">not_found</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#4a2d7a">X</span> Cross-Reference with Anchor Papers</div>
+    <div class="card">
+      <table>
+        <tr><th>Anchor Paper</th><th>Relationship</th><th>Detail</th><th>Source</th></tr>
+        <tr>
+          <td>lotus</td>
+          <td>Extends</td>
+          <td>CSV addresses the &lt;strong&gt;semantic filter operator&lt;/strong&gt; which is a cornerstone of the &lt;strong&gt;semantic operators&lt;/strong&gt; framework proposed in LOTUS. CSV optimizes the execution of semantic filters from linear to sublinear LLM invocations.</td>
+          <td><span class="src">abstract</span></td>
+        </tr>
+        <tr>
+          <td>bargain</td>
+          <td>Complements</td>
+          <td>Both CSV and BARGAIN aim to &lt;strong&gt;reduce LLM costs&lt;/strong&gt; while providing &lt;strong&gt;guarantees&lt;/strong&gt;. BARGAIN focuses on cost-accuracy tradeoffs with statistical guarantees, while CSV achieves sublinear complexity through clustering-sampling-voting with error guarantees.</td>
+          <td><span class="src">abstract</span></td>
+        </tr>
+        <tr>
+          <td>task_cascades</td>
+          <td>Complements</td>
+          <td>Task cascades reduce costs by routing through cheaper models first, while CSV reduces costs by &lt;strong&gt;avoiding per-tuple LLM invocation entirely&lt;/strong&gt; through cluster-level inference. Both aim to break the linear invocation pattern.</td>
+          <td><span class="src">abstract</span></td>
+        </tr>
+        <tr>
+          <td>scaledoc</td>
+          <td>Complements</td>
+          <td>Both papers address scaling LLM-based predicates over large collections. ScaleDoc focuses on document collections while CSV focuses on &lt;strong&gt;tabular semantic filtering&lt;/strong&gt; with sublinear invocation guarantees.</td>
+          <td><span class="src">abstract</span></td>
+        </tr>
+        <tr>
+          <td>thriftllm</td>
+          <td>Complements</td>
+          <td>ThriftLLM optimizes cost by selecting among multiple LLMs, while CSV optimizes cost by &lt;strong&gt;reducing the number of invocations&lt;/strong&gt; regardless of which LLM is used. The approaches are orthogonal and could be combined.</td>
+          <td><span class="src">abstract</span></td>
+        </tr>
+        <tr>
+          <td>nirvana</td>
+          <td>Complements</td>
+          <td>Both papers deal with semantic-aware data processing. Nirvana focuses on multi-modal analytics while CSV specifically optimizes the &lt;strong&gt;semantic filter&lt;/strong&gt; operator for efficiency.</td>
+          <td><span class="src">abstract</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Deep Paper Review — Research Paper Toolkit v0.1</p>
+  <p>Extraction date: 2026-03-30 | Level 2 | <span class="src">source tags</span> indicate extraction provenance</p>
+  <p style="margin-top:0.5rem"><span class="src src-missing">orange tags</span> = information not found, needs verification</p>
+</div>
+
+</div>
+</body>
+</html>
