@@ -3,6 +3,8 @@
 Usage:
   python scripts/deep_review.py --paper 2601.05536 --level 1 --profile config/profiles/yiming.yaml
   python scripts/deep_review.py --paper 2601.05536 --level 2 --profile config/profiles/yiming.yaml
+  python scripts/deep_review.py --pdf /path/to/paper.pdf --paper 2601.05536 --level 2 --profile config/profiles/yiming.yaml
+  python scripts/deep_review.py --batch-anchor --level 2 --force --profile config/profiles/yiming.yaml
 """
 
 from __future__ import annotations
@@ -38,7 +40,14 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from scripts.utils.arxiv_client import fetch_paper_metadata, fetch_paper_text, fetch_paper_structured, normalize_arxiv_id
 from scripts.utils.html_renderer import render_report
 from scripts.utils.llm_client import LLMClient
+from scripts.utils.metadata_enricher import enrich_metadata
+from scripts.utils.pdf_client import download_arxiv_pdf, parse_pdf, parse_pdf_simple, is_pdf_parsing_available
 from scripts.utils.schema_validator import validate_extraction
+
+# Minimum text length to consider ar5iv extraction valid
+# BARGAIN error page: ~267 chars. CSV sparse ar5iv: ~5757 chars.
+# Successful papers: 50K+ chars. Threshold set to catch sparse pages.
+_MIN_AR5IV_TEXT_LEN = 10000
 
 
 def load_profile(profile_path: str) -> dict:
@@ -242,11 +251,22 @@ def _build_level2_user_prompt(full_text: str, structured: dict | None, layers: l
     return "\n".join(parts)
 
 
-def run_review(arxiv_id: str, level: int, profile: dict) -> dict:
-    """Run the extraction pipeline and return the result dict."""
+def run_review(arxiv_id: str, level: int, profile: dict, pdf_path: str | None = None) -> dict:
+    """Run the extraction pipeline and return the result dict.
+
+    Args:
+        arxiv_id: arXiv paper ID
+        level: extraction level (1 or 2)
+        profile: researcher profile dict
+        pdf_path: optional path to local PDF (skips ar5iv and PDF download)
+    """
     arxiv_id = normalize_arxiv_id(arxiv_id)
     print(f"Fetching metadata for {arxiv_id}...")
     metadata = fetch_paper_metadata(arxiv_id)
+
+    # Enrich metadata with venue/DOI from Semantic Scholar + OpenAlex
+    print(f"Enriching metadata from external APIs...")
+    metadata = enrich_metadata(arxiv_id, metadata)
 
     llm_config = profile.get("llm_config", {})
     provider = llm_config.get("provider", "anthropic")
@@ -257,24 +277,65 @@ def run_review(arxiv_id: str, level: int, profile: dict) -> dict:
         system, user = build_level1_prompt(metadata, metadata["abstract"], profile)
         print(f"Running Level 1 extraction with {model}...")
         result = client.chat_json(system, user, model=model, max_tokens=4096)
+        content_source = "abstract"
     else:
         model = llm_config.get("level2_model", "claude-opus-4-6")
-        print(f"Fetching full paper from ar5iv (structured)...")
-        structured = fetch_paper_structured(arxiv_id)
-        if structured:
-            full_text = structured["text"]
-            n_tables = len(structured.get("tables", []))
-            n_figs = len(structured.get("figures", []))
-            n_formulas = len(structured.get("formulas", []))
-            print(f"Got {len(full_text)} chars + {n_tables} tables + {n_figs} figures + {n_formulas} formulas")
-        else:
-            print("WARNING: ar5iv not available, falling back to plain text...")
-            full_text = fetch_paper_text(arxiv_id)
-            structured = None
+        structured = None
+        full_text = None
+        content_source = "abstract_only"
 
+        # --- Content acquisition fallback chain ---
+        # Priority: user PDF > MineRU from arXiv PDF > ar5iv HTML > plain text
+
+        if pdf_path:
+            # User-provided PDF takes top priority
+            print(f"Using user-provided PDF: {pdf_path}")
+            structured, full_text, content_source = _acquire_from_pdf(Path(pdf_path))
+        else:
+            # Step 1 (primary): Download arXiv PDF + MineRU parse
+            if is_pdf_parsing_available():
+                print(f"Downloading arXiv PDF for MineRU parsing (primary)...")
+                downloaded = download_arxiv_pdf(arxiv_id)
+                if downloaded:
+                    structured, full_text, content_source = _acquire_from_pdf(downloaded)
+
+            # Step 2 (fallback): Try ar5iv HTML
+            if not full_text:
+                print(f"Fetching from ar5iv (fallback)...")
+                ar5iv_result = fetch_paper_structured(arxiv_id)
+                if ar5iv_result:
+                    text_len = len(ar5iv_result.get("text", ""))
+                    if text_len >= _MIN_AR5IV_TEXT_LEN:
+                        structured = ar5iv_result
+                        full_text = ar5iv_result["text"]
+                        content_source = "ar5iv"
+                        n_tables = len(structured.get("tables", []))
+                        n_figs = len(structured.get("figures", []))
+                        n_formulas = len(structured.get("formulas", []))
+                        print(f"  ar5iv OK: {text_len} chars + {n_tables} tables + {n_figs} figures + {n_formulas} formulas")
+                    else:
+                        print(f"  ar5iv returned only {text_len} chars (likely error page)")
+
+            # Step 3 (fallback): Download PDF + simple text extraction (no MineRU)
+            if not full_text and not is_pdf_parsing_available():
+                print(f"Downloading arXiv PDF (PyMuPDF fallback, MineRU not installed)...")
+                downloaded = download_arxiv_pdf(arxiv_id)
+                if downloaded:
+                    structured, full_text, content_source = _acquire_from_pdf(downloaded)
+
+            # Step 4 (fallback): Plain text from ar5iv
+            if not full_text:
+                print("  Trying plain text from ar5iv...")
+                plain = fetch_paper_text(arxiv_id)
+                if plain and len(plain) >= _MIN_AR5IV_TEXT_LEN:
+                    full_text = plain
+                    content_source = "ar5iv_plain"
+
+        # Step 4: Abstract-only fallback
         if not full_text:
             print("WARNING: no full text available, falling back to abstract-only")
             full_text = f"Title: {metadata['title']}\n\nAbstract:\n{metadata['abstract']}"
+            content_source = "abstract_only"
 
         # Truncate text if too long
         max_text_len = 80000
@@ -284,22 +345,46 @@ def run_review(arxiv_id: str, level: int, profile: dict) -> dict:
         framework_layers = profile.get("framework", {}).get("layers", [])
         system = build_level2_prompt(metadata, "", profile)
         user = _build_level2_user_prompt(full_text, structured, framework_layers)
-        print(f"Running Level 2 deep extraction with {model}...")
+        print(f"Running Level 2 deep extraction with {model} (source: {content_source})...")
         result = client.chat_json(system, user, model=model, max_tokens=16384)
 
-        # Inject parsed content from ar5iv into LLM result
+        # Inject parsed content into LLM result
         if structured:
             if structured.get("figures"):
                 _inject_figure_urls(result, structured["figures"])
             if structured.get("tables"):
                 _inject_table_data(result, structured["tables"])
 
-    # Ensure paper_id and level are set
+    # Ensure paper_id, level, source are set
     result["paper_id"] = arxiv_id
     result["extraction_level"] = level
     result["extraction_date"] = date.today().isoformat()
+    result["content_source"] = content_source
 
     return result
+
+
+def _acquire_from_pdf(pdf_path: Path) -> tuple[dict | None, str | None, str]:
+    """Try to parse a PDF file. Returns (structured, full_text, source_tag)."""
+    origin = "arxiv" if "data/papers" in str(pdf_path) else "user"
+
+    # Try MineRU first (structured parsing with tables/formulas)
+    if is_pdf_parsing_available():
+        structured = parse_pdf(pdf_path)
+        if structured and len(structured.get("text", "")) >= _MIN_AR5IV_TEXT_LEN:
+            print(f"  MineRU parsed: {len(structured['text'])} chars + "
+                  f"{len(structured.get('tables', []))} tables + "
+                  f"{len(structured.get('formulas', []))} formulas")
+            return structured, structured["text"], f"mineru_{origin}"
+
+    # Fallback: simple text extraction via PyMuPDF (no tables/formulas)
+    simple_text = parse_pdf_simple(pdf_path)
+    if simple_text and len(simple_text) >= _MIN_AR5IV_TEXT_LEN:
+        print(f"  PyMuPDF text: {len(simple_text)} chars")
+        return None, simple_text, f"pymupdf_{origin}"
+
+    print(f"  PDF parsing produced insufficient text from {pdf_path}")
+    return None, None, "abstract_only"
 
 
 def _inject_figure_urls(result: dict, parsed_figures: list[dict]) -> None:
@@ -374,10 +459,10 @@ def save_results(result: dict, level: int, profile: dict) -> tuple[Path, Path | 
     return json_path, html_path
 
 
-def _review_and_save(arxiv_id: str, level: int, profile: dict) -> bool:
+def _review_and_save(arxiv_id: str, level: int, profile: dict, pdf_path: str | None = None) -> bool:
     """Run review + validate + save for a single paper. Returns True on success."""
     try:
-        result = run_review(arxiv_id, level, profile)
+        result = run_review(arxiv_id, level, profile, pdf_path=pdf_path)
         errors = validate_extraction(result, level)
         if errors:
             print(f"\nValidation warnings ({len(errors)}):")
@@ -403,9 +488,16 @@ def main():
     group.add_argument("--batch-anchor", action="store_true", help="Extract all anchor papers from profile")
     parser.add_argument("--level", type=int, choices=[1, 2], default=1, help="Extraction level")
     parser.add_argument("--profile", required=True, help="Path to researcher profile YAML")
+    parser.add_argument("--pdf", help="Path to local PDF file (used with --paper)")
+    parser.add_argument("--force", action="store_true",
+                        help="Re-extract even if JSON already exists")
     parser.add_argument("--skip-existing", action="store_true", default=True,
                         help="Skip papers that already have extraction JSON (default: True)")
     args = parser.parse_args()
+
+    # --force overrides --skip-existing
+    if args.force:
+        args.skip_existing = False
 
     profile = load_profile(args.profile)
     reviews_dir = PROJECT_ROOT / "data" / "reviews"
@@ -425,19 +517,18 @@ def main():
                 print(f"WARNING: anchor paper '{p.get('id', '?')}' has no arxiv_id, skipping")
         print(f"Found {len(paper_ids)} anchor papers with arXiv IDs")
 
-    # Filter out already-extracted papers
+    # Filter out already-extracted papers (unless --force)
     if args.skip_existing and len(paper_ids) > 1:
         to_process = []
         for pid in paper_ids:
-            from scripts.utils.arxiv_client import normalize_arxiv_id
             safe = normalize_arxiv_id(pid).replace("/", "_")
             if (reviews_dir / f"{safe}.json").exists():
-                print(f"Skipping {pid} (already extracted)")
+                print(f"Skipping {pid} (already extracted, use --force to re-extract)")
             else:
                 to_process.append(pid)
         paper_ids = to_process
         if not paper_ids:
-            print("All papers already extracted. Nothing to do.")
+            print("All papers already extracted. Use --force to re-extract.")
             return
 
     # Process
@@ -447,7 +538,8 @@ def main():
         print(f"\n{'='*60}")
         print(f"[{i}/{total}] Processing {pid}")
         print(f"{'='*60}")
-        if _review_and_save(pid, args.level, profile):
+        pdf = args.pdf if (args.paper and args.pdf) else None
+        if _review_and_save(pid, args.level, profile, pdf_path=pdf):
             success += 1
 
     if total > 1:

@@ -101,17 +101,17 @@ details[open] summary { margin-bottom: 0.5rem; }
 <div class="paper-header">
   <h1>Beyond Linear LLM Invocation: An Efficient and Effective Semantic Filter Paradigm</h1>
   <div class="meta-row">
-    <span class="badge badge-venue">arXiv preprint</span>
+    <span class="badge badge-venue">PVLDB</span>
     <span class="badge badge-year">2026</span>
     <span class="badge badge-level">Level 2 Review</span>
   </div>
   <div class="authors">
     Nan Hou,     Kangfei Zhao,     Jiadong Xie,     Jeffrey Xu Yu  </div>
-  <div class="institution">The Chinese University of Hong Kong</div>
+  <div class="institution">The Chinese University of Hong Kong, Beijing Institute of Technology, HKUST (Guangzhou)</div>
   <div class="links">
     <a href="https://arxiv.org/abs/2603.04799">arXiv</a>
     <a href="https://arxiv.org/pdf/2603.04799.pdf">PDF</a>
-    <a href="10.48550/arXiv.2603.04799">DOI</a>
+    <a href="https://github.com/Anto-an/CSV_SemanticFilter">Code</a>
   </div>
 </div>
 
@@ -119,8 +119,8 @@ details[open] summary { margin-bottom: 0.5rem; }
 <div class="section">
   <div class="section-title"><span class="section-icon" style="background:#1a4f8b">S</span> Core Contribution</div>
   <div class="card">
-    <p style="font-size:0.9rem">The paper proposes <strong>Clustering-Sampling-Voting (CSV)</strong>, a framework that reduces LLM invocations for semantic filtering from linear to <strong>sublinear complexity</strong> while providing <strong>error guarantees</strong>. CSV embeds tuples into <strong>semantic clusters</strong>, samples a small subset for LLM evaluation, and infers cluster-level labels via two voting strategies: <strong>UniVote</strong> (uniform aggregation) and <strong>SimVote</strong> (similarity-weighted voting), with <strong>re-clustering</strong> on ambiguous clusters to ensure robustness.
-      <span class="src">abstract</span>
+    <p style="font-size:0.9rem">The paper proposes <strong>Clustering-Sampling-Voting (CSV)</strong>, a new paradigm for LLM-powered semantic filter processing that reduces LLM invocations to <strong>sublinear complexity</strong> in the average case. CSV embeds tuples into semantic clusters offline, samples a small subset for LLM evaluation, and infers cluster-level labels via two voting strategies: <strong>UniVote</strong> (uniform majority voting) and <strong>SimVote</strong> (similarity-weighted voting), with theoretical error guarantees derived from the <strong>Bernstein Inequality</strong> that explicitly connect the error bound to the sample ratio.
+      <span class="src">Section 1, Section 3</span>
     </p>
   </div>
 </div>
@@ -131,44 +131,44 @@ details[open] summary { margin-bottom: 0.5rem; }
   <div class="framework-grid">
     <div class="fw-cell fw-1">
       <h4>1. Data Representation Layer</h4>
-      <p>Tuples from the table are embedded into a <strong>semantic space</strong> to enable clustering. The representation captures semantic similarity between tuples with respect to the natural language predicate.
-        <span class="src">abstract</span>
+      <p>Tuples are embedded using <strong>E5-Large</strong> pretrained encoder into vector representations. For long texts exceeding context length, text is segmented into chunks and the final embedding is the mean of segment embeddings. Optionally, <strong>BM25 scores</strong> are combined with Euclidean distance via parameter α for lexically-anchored predicates. Embeddings are generated <strong>offline</strong> and are query-agnostic.
+        <span class="src">Section 3.1, Section 4.1</span>
       </p>
     </div>
     <div class="fw-cell fw-2">
       <h4>2. Candidate Executor / Proxy Layer</h4>
-      <p>An <strong>embedding model</strong> serves as the proxy to compute semantic representations and cluster tuples, while the <strong>LLM</strong> serves as the oracle executor invoked only on sampled tuples. This creates a two-tier system where the embedding-based clustering acts as a lightweight proxy to reduce expensive LLM calls.
-        <span class="src">abstract</span>
+      <p>Unlike <strong>Lotus</strong> and <strong>BARGAIN</strong> which use a smaller proxy LLM (e.g., LLaMA-3.2-3B) for initial filtering, CSV replaces per-tuple proxy LLM calling with <strong>embedding-based grouping</strong>. The embedding model serves as the cheap proxy, and only a single LLM (e.g., <strong>LLaMA-3.1-8B</strong>) is used for sampled tuples. This avoids the linear proxy scan bottleneck entirely.
+        <span class="src">Section 3, Section 2.2</span>
       </p>
     </div>
     <div class="fw-cell fw-3">
       <h4>3. Unit of Decision Layer</h4>
-      <p>Rather than making decisions <strong>tuple-by-tuple</strong> (as in standard semantic filtering), CSV makes decisions at the <strong>cluster level</strong>, inferring labels for all tuples in a cluster based on sampled evaluations. This is the key insight enabling sublinear invocations.
-        <span class="src">abstract</span>
+      <p><strong>UniVote</strong> makes a uniform cluster-level decision: all unsampled tuples in a cluster receive the same label. <strong>SimVote</strong> makes <strong>per-tuple decisions</strong> by computing similarity-weighted scores for each individual unsampled tuple. Both operate at the cluster granularity for sampling but differ in label assignment granularity.
+        <span class="src">Section 3.1, Algorithms 2 and 3</span>
       </p>
     </div>
     <div class="fw-cell fw-4">
       <h4>4. Predicate Transformation Layer</h4>
-      <p>The natural language predicate <strong>e</strong> is used directly in prompts for sampled tuples. The transformation is implicit: the predicate's semantics are captured through the <strong>embedding space</strong> used for clustering, but the predicate itself is not decomposed or rewritten.
-        <span class="src">abstract</span>
+      <p>The NL predicate e is directly combined with tuple content and a system prompt to form the LLM input. For multi-class tasks (Airdialogue), the task is <strong>decomposed into multiple binary semantic filter queries</strong> (AD-Q1/Q2/Q3/Q4), each corresponding to one class. Additional task-specific instructions are prepended to the prompt.
+        <span class="src">Section 2.1, Section 4.1 (Queries)</span>
       </p>
     </div>
     <div class="fw-cell fw-5">
       <h4>5. Calibration / Sampling Layer</h4>
-      <p>CSV <strong>samples a small subset</strong> from each semantic cluster for LLM evaluation. When clusters are <strong>ambiguous</strong> (mixed positive/negative), re-clustering is triggered to refine the groupings. This adaptive sampling strategy ensures that the sample is representative of cluster-level semantics.
-        <span class="src">abstract</span>
+      <p>Within each cluster, tuples are sampled <strong>uniformly at random</strong> at rate ξ (default 5‰, minimum 101 samples). The theoretical analysis based on the <strong>Bernstein Inequality</strong> provides an explicit relationship between the error tolerance ε and the required sampling ratio ξ, enabling principled parameter tuning. The user specifies ε and the framework computes the necessary ξ.
+        <span class="src">Section 3.2, Theorems 3.3 and 3.6</span>
       </p>
     </div>
     <div class="fw-cell fw-6">
       <h4>6. Routing / Action Layer</h4>
-      <p>After sampling, labels are propagated to unsampled tuples via <strong>UniVote</strong> (uniform majority voting) or <strong>SimVote</strong> (similarity-weighted voting). The routing decision is whether to accept the cluster-level vote or trigger <strong>re-clustering</strong> for ambiguous clusters.
-        <span class="src">abstract</span>
+      <p>Based on the voting score compared to thresholds <strong>ub</strong> and <strong>lb</strong> (default ub=0.85, lb=0.15), tuples are routed to one of three actions: (1) accepted as True if score ≥ ub, (2) rejected as False if score ≤ lb, (3) sent for <strong>recursive re-clustering</strong> if score ∈ (lb, ub). After maximum re-clustering depth (default 3), remaining ambiguous tuples fall back to <strong>direct LLM invocation</strong>.
+        <span class="src">Section 3.1, Algorithm 1 lines 16-20</span>
       </p>
     </div>
     <div class="fw-cell fw-7">
       <h4>7. Guarantee Layer</h4>
-      <p>CSV provides <strong>error guarantees</strong> on the semantic filtering results, ensuring that the sublinear approximation maintains bounded error relative to full linear evaluation. The specific form of guarantees (probabilistic bounds, worst-case, etc.) is described in the full paper.
-        <span class="src">abstract</span>
+      <p>CSV provides <strong>probabilistic error guarantees</strong>: Pr[f(t_i) ≠ x_i] ≤ max(lb + ε, 1 - (ub - ε)) with probability at least 1 - 2l^n (Theorems 3.3 and 3.6). The error bound explicitly connects to the sample ratio ξ, enabling users to trade off cost vs. accuracy. In the worst case, the framework falls back to full linear LLM invocation, ensuring bounded errors.
+        <span class="src">Section 3.2, Theorems 3.3 and 3.6</span>
       </p>
     </div>
   </div>
@@ -179,33 +179,39 @@ details[open] summary { margin-bottom: 0.5rem; }
   <div class="section-title"><span class="section-icon" style="background:#2d5a27">M</span> Method Components</div>
   <div class="card">
     <details open>
-      <summary>Semantic Clustering</summary>
-      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Tuples are embedded into a semantic space and grouped into <strong>semantic clusters</strong> based on their embeddings, enabling batch-level reasoning rather than tuple-by-tuple LLM evaluation.
-        <span class="src">abstract</span>
+      <summary>Offline Clustering</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">All tuples in a relation are embedded using a pretrained encoder (e.g., <strong>E5-Large</strong>) and grouped into semantically similar clusters using <strong>K-means</strong>. This step is performed offline and is <strong>query-agnostic</strong>, reusable across different predicates. Optionally, <strong>BM25 scores</strong> are combined with embedding Euclidean distance via a weighting parameter α for predicates with strong lexical anchoring.
+        <span class="src">Section 3.1, Algorithm 1 lines 2-3</span>
       </p>
     </details>
     <details>
-      <summary>Sampling</summary>
-      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A <strong>small subset</strong> of tuples is sampled from each cluster for LLM evaluation, reducing the total number of LLM invocations to <strong>sublinear</strong> in the table size.
-        <span class="src">abstract</span>
+      <summary>Online Sampling</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Within each cluster, a small sample of tuples is drawn uniformly at a <strong>sampling rate ξ</strong> (with a minimum sample size min_sample=101) and evaluated with the LLM as representatives. The sampling ratio directly controls the trade-off between LLM invocation cost and theoretical error.
+        <span class="src">Section 3.1, Algorithm 1 lines 9-15</span>
       </p>
     </details>
     <details>
-      <summary>UniVote</summary>
-      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A voting strategy that <strong>aggregates labels uniformly</strong> across sampled tuples within a cluster to infer the cluster-level label.
-        <span class="src">abstract</span>
+      <summary>UniVote (Uniform Voting)</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)"><strong>UniVote</strong> computes the ratio of sampled tuples that pass the filter and compares it against two thresholds <strong>ub</strong> and <strong>lb</strong>. If the ratio ≥ ub, all remaining tuples in the cluster are labeled True; if ≤ lb, all are labeled False; otherwise, tuples are marked as undetermined and sent for re-clustering.
+        <span class="src">Section 3.1, Algorithm 2</span>
       </p>
     </details>
     <details>
-      <summary>SimVote</summary>
-      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">A voting strategy that <strong>weights votes by semantic similarity</strong> between sampled tuples and other cluster members, providing more nuanced label inference.
-        <span class="src">abstract</span>
+      <summary>SimVote (Similarity-based Voting)</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)"><strong>SimVote</strong> computes a per-tuple score by aggregating sampled tuple labels weighted by <strong>normalized semantic similarity</strong> between the target tuple and each sampled tuple. This provides <strong>fine-grained, per-tuple decisions</strong> rather than uniform cluster-level labels, offering more robustness when initial clustering does not perform well.
+        <span class="src">Section 3.1, Algorithm 3, Eq. 4</span>
       </p>
     </details>
     <details>
-      <summary>Re-clustering</summary>
-      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">CSV triggers <strong>re-clustering on ambiguous clusters</strong> to ensure robustness across diverse datasets, handling cases where initial clustering does not cleanly separate positive and negative tuples.
-        <span class="src">abstract</span>
+      <summary>Recursive Re-clustering</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">When a cluster's voting score falls in the ambiguous interval (lb, ub), the framework triggers <strong>online re-clustering</strong> on the undetermined tuples. This recursive mechanism continues until a maximum split limit (default 3 iterations) is reached, after which remaining ambiguous tuples fall back to <strong>direct LLM invocation</strong>.
+        <span class="src">Section 3.1, Algorithm 1 lines 18-20</span>
+      </p>
+    </details>
+    <details>
+      <summary>Hybrid Distance Metric</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">For predicates with strong lexical anchoring, a <strong>hybrid clustering distance</strong> combines <strong>BM25 similarity</strong> (lexical) and <strong>Euclidean distance</strong> (semantic) via a weighting parameter α, improving clustering quality for explicit and hybrid predicates.
+        <span class="src">Section 4.1</span>
       </p>
     </details>
   </div>
@@ -216,42 +222,888 @@ details[open] summary { margin-bottom: 0.5rem; }
   <div class="section-title"><span class="section-icon" style="background:#8b1a1a">T</span> Theoretical Results</div>
   <div class="card">
     <div class="cmp">
-      <span class="cmp-label">Guarantee</span>
-      <span class="cmp-val">CSV reduces LLM invocations to <strong>sublinear complexity</strong> while providing <strong>error guarantees</strong>.
-        <span class="src">abstract</span>
+      <span class="cmp-label">Theorem</span>
+      <span class="cmp-val">Given sufficient sampling rate ξ satisfying a Bernstein-based condition, UniVote's voting decision f(t_i) disagrees with the true LLM output x_i with probability bounded by max(lb + ε, 1 - (ub - ε)), holding with probability at least 1 - 2l^n.
+        <span class="src">Theorem 3.3</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Lemma</span>
+      <span class="cmp-val">For SimVote, the mean of similarity-weighted scores over unsampled tuples equals the mean of the LLM labels over sampled tuples: μ(score(C\O)) = μ(X(O)), when sampling is uniform.
+        <span class="src">Lemma 3.5</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Theorem</span>
+      <span class="cmp-val">SimVote's voting decision g(t_i) disagrees with the true LLM output x_i with probability bounded by max(lb + ε, 1 - (ub - ε)), holding with probability at least 1 - 2l^n, under a slightly more complex sampling rate condition involving the weight variance factor v.
+        <span class="src">Theorem 3.6</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Lemma</span>
+      <span class="cmp-val">Weighted Bernstein inequality: for weighted mean μ_w of samples drawn without replacement, the concentration bound involves an additional factor v where max_i w_i ≤ v/k.
+        <span class="src">Corollary 3.4</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Bound</span>
+      <span class="cmp-val">CSV achieves O(ξ|T|) LLM invocations in the best case (sublinear) and O(|T|) in the worst case.
+        <span class="src">Section 3.1 (Complexity Analysis)</span>
       </span>
     </div>
   </div>
 </div>
 
 <!-- KEY FORMULAS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">Q</span> Key Formulas</div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 1</span>
+    <span class="src">Section 2.1</span>
+    <div class="formula-latex">\[\sigma_{M(e)}(T) = \{t \in T \mid M(t, e) = \text{True}\}\]</div>
+    <div class="formula-desc">Definition of the semantic filter operator: returns all tuples in T whose textual attributes satisfy the NL predicate e by LLM judgment.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 3</span>
+    <span class="src">Section 3.1</span>
+    <div class="formula-latex">\[\hat{M}(t_i; e) = \begin{cases} \text{True} &amp; \text{if score}(t_i) \geq ub \\ \text{False} &amp; \text{if score}(t_i) \leq lb \\ \text{Undetermined} &amp; \text{if score}(t_i) \in (lb, ub) \end{cases}\]</div>
+    <div class="formula-desc">Voting decision rule based on thresholds ub and lb for both UniVote and SimVote.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 4</span>
+    <span class="src">Section 3.1</span>
+    <div class="formula-latex">\[\text{score}(t_i) = \sum_{t_j \in C&#39;} \frac{\text{sim}(e_i, e_j)}{\sum_{t_k \in C&#39;} \text{sim}(e_i, e_k)} \mathbb{I}(M(t_j, e)), \forall t_i \in C \setminus C&#39;\]</div>
+    <div class="formula-desc">SimVote scoring function: similarity-weighted aggregation of sampled tuple labels for each unsampled tuple.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 7 (UniVote ξ bound)</span>
+    <span class="src">Theorem 3.3</span>
+    <div class="formula-latex">\[\xi \geq \frac{1}{2} - \sqrt{\frac{1}{4} + \ln l \left(\frac{2\hat{\sigma}^2}{\epsilon^2} + \frac{2}{3\epsilon}\right)}\]</div>
+    <div class="formula-desc">Minimum sampling ratio for UniVote to guarantee error bound ε with failure probability controlled by l.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 12 (SimVote ξ bound)</span>
+    <span class="src">Theorem 3.6</span>
+    <div class="formula-latex">\[\xi \geq \frac{1}{2} - \sqrt{\frac{1}{4} + \frac{v \ln l (6\hat{\sigma}^2 + 2\epsilon)}{3\epsilon^2}}\]</div>
+    <div class="formula-desc">Minimum sampling ratio for SimVote to guarantee error bound ε, incorporating weight variance factor v.</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 8 (Error bound)</span>
+    <span class="src">Theorem 3.3</span>
+    <div class="formula-latex">\[Pr[f(t_i) \neq x_i] \leq \max(lb + \epsilon, 1 - (ub - \epsilon))\]</div>
+    <div class="formula-desc">Probabilistic error bound for UniVote: the probability that the voting decision disagrees with the true LLM output.</div>
+  </div>
+</div>
 
 <!-- KEY FIGURES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">G</span> Key Figures</div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 1
+      <span class="src">Figure 1</span>
+    </div>
+    <img src="images/43a2eda1d2463d33040932a4fcc7324c9e0c08e07ad42d0a87229c84e4517c4b.jpg" alt="Figure 1" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Data Label Distributions of Lotus and Ours (CSV)</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows proxy score distributions for Lotus (1a, 1b) vs cluster label distributions for CSV (1c, 1d) on IMDB-Review and Airdialogue. Demonstrates that Lotus proxy scores can concentrate in narrow intervals making threshold learning unstable, while CSV clusters are mostly dominated by a single label, validating the clustering approach.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 2
+      <span class="src">Figure 2</span>
+    </div>
+    <img src="images/3f954e90d05c3ed8e5b463a77c9c5770df71b545a3dec6e78dbf8c0471a81c7e.jpg" alt="Figure 2" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Probability Distribution Across Distance</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows the relationship between embedding distance and label agreement probability across 6 queries on two datasets. Demonstrates a consistent pattern: as embedding distance increases, label agreement probability decreases, providing quantitative support for using embedding-based clustering.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 3
+      <span class="src">Figure 3</span>
+    </div>
+    <img src="images/c3f2961b82d27371382990cef9a2e9f9d538607344e1beb0f6bcf73d64f14af9.jpg" alt="Figure 3" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> A Running Example of Clustering-Sampling-Voting (CSV) with UniVote on IMDB-Review Dataset</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Illustrates the complete CSV pipeline: K-means clustering into 8 clusters, sampling 101 tuples per cluster, voting with lb=0.15 and ub=0.85, and re-clustering for ambiguous clusters (C3 with 80.20% True).</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 4
+      <span class="src">Figure 4</span>
+    </div>
+    <img src="images/095d68ba04b67777e4e956b733c7a8b7f82566ac991a6cf9e802a3cf96930d20.jpg" alt="Figure 4" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Comparisons of Query Time, # LLM Calls and Token Usage for Semantic Filter</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Bar charts comparing execution time, total LLM calls, and total tokens across all methods and queries. Shows CSV achieves 1-3 orders of magnitude improvements across all datasets. Lotus and BARGAIN sometimes exceed Reference cost due to failed proxy filtering.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 5
+      <span class="src">Figure 5</span>
+    </div>
+    <img src="images/3cb2106213660e23ae47508fe9e467d012f2f0608655479bb59276752e0d539f.jpg" alt="Figure 5" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Hyper-parameter Effects on Query Time, # LLM Calls and Token Usage for Semantic Filter</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows the impact of number of clusters, sample ratio, and lower bound on efficiency metrics for UniCSV and SimCSV across RV-Q1, CB-Q2, and AD-Q2.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 6
+      <span class="src">Figure 6</span>
+    </div>
+    <img src="images/ddc08f8e74fbb115b7378a20699a3d97e95610eee11c902298bf98fcdf529936.jpg" alt="Figure 6" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> UniCSV and SimCSV on Synthetic Queries</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Box plots showing Accuracy, F1, and # LLM calls across 180 synthetic queries (3 types × 3 difficulty levels × 10 queries × 2 datasets). Reveals that CSV maintains high accuracy broadly but F1 drops for hard predicates with extremely low selectivity.</div>
+  </div>
+</div>
 
 <!-- KEY TABLES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">B</span> Key Tables</div>
+  <div class="card">
+    <div class="card-title">Table 1
+      <span class="src">Table 1</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Profile of Test Semantic Queries</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Dataset</th>
+          <th>Query</th>
+          <th>Query Type</th>
+          <th>Predicate</th>
+          <th>Ground-truth</th>
+        </tr>
+        <tr>
+          <td>RV-Q1</td>
+          <td>semantic filter</td>
+          <td>The {review} is positive.</td>
+          <td>available</td>
+        </tr>
+        <tr>
+          <td>RV-Q2</td>
+          <td>semantic filter</td>
+          <td>The {review} explicitly recommends that others watch the movie.</td>
+          <td>GPT-4o</td>
+        </tr>
+        <tr>
+          <td>RV-Q3</td>
+          <td>semantic filter</td>
+          <td>The {review} focuses on factual descriptions like technical details.</td>
+          <td>GPT-4o</td>
+        </tr>
+        <tr>
+          <td>CB-Q1</td>
+          <td>semantic filter</td>
+          <td>The {AboutMe} contains a link to social media.</td>
+          <td>GPT-4o</td>
+        </tr>
+        <tr>
+          <td>CB-Q2</td>
+          <td>semantic filter</td>
+          <td>The {AboutMe} text suggests that the user has either experience in computer science or expresses an interest in the field of computer science.</td>
+          <td>GPT-4o</td>
+        </tr>
+        <tr>
+          <td>CB-Q3</td>
+          <td>semantic filter</td>
+          <td>The {AboutMe} focuses on factual identification details.</td>
+          <td>GPT-4o</td>
+        </tr>
+        <tr>
+          <td>TC</td>
+          <td>semantic filter</td>
+          <td>The {comment} contains hate speech or offensive language.</td>
+          <td>available</td>
+        </tr>
+        <tr>
+          <td>Airdialogue</td>
+          <td>AD-Q1/Q2/Q3/Q4</td>
+          <td>semantic filter</td>
+          <td>The {dialogue} has outcome book/cancel/no_flight/no reservation.</td>
+          <td>available</td>
+        </tr>
+        <tr>
+          <td>Fever</td>
+          <td>Fever</td>
+          <td>multi-column filter</td>
+          <td>The {claim} is supported by the {evidence}.</td>
+          <td>available</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Summarizes 14 test queries across 5 datasets with their predicates, query types, and ground-truth sources. Includes single-column and multi-column filters, and multi-class decomposition for Airdialogue.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 2
+      <span class="src">Table 2</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">The Accuracy and F1 Score of Semantic Filter Queries</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th></th>
+          <th>Method</th>
+          <th>RV-Q1</th>
+          <th>RV-Q2</th>
+          <th>RV-Q3</th>
+          <th>CB-Q1</th>
+          <th>CB-Q2</th>
+          <th>CB-Q3</th>
+          <th>AD-Q1</th>
+          <th>AD-Q2</th>
+          <th>AD-Q3</th>
+          <th>AD-Q4</th>
+          <th>TC</th>
+          <th>Fever</th>
+        </tr>
+        <tr>
+          <td>Reference</td>
+          <td>0.9480</td>
+          <td>0.8229</td>
+          <td>0.9097</td>
+          <td>0.9731</td>
+          <td>0.7782</td>
+          <td>0.7033</td>
+          <td>0.8972</td>
+          <td>0.9139</td>
+          <td>0.8112</td>
+          <td>0.8737</td>
+          <td>0.7203</td>
+          <td>0.8258</td>
+        </tr>
+        <tr>
+          <td>Lotus</td>
+          <td>0.9480</td>
+          <td>0.8679</td>
+          <td>0.9948</td>
+          <td>0.9595</td>
+          <td>0.6853</td>
+          <td>0.6996</td>
+          <td>0.8938</td>
+          <td>0.9066</td>
+          <td>0.9192</td>
+          <td>0.8690</td>
+          <td>0.5196</td>
+          <td>0.7396</td>
+        </tr>
+        <tr>
+          <td>BARGAIN</td>
+          <td>0.9186</td>
+          <td>0.7881</td>
+          <td>0.9948</td>
+          <td>0.9681</td>
+          <td>0.5308</td>
+          <td>0.6493</td>
+          <td>0.7423</td>
+          <td>0.8972</td>
+          <td>0.3885</td>
+          <td>0.9563</td>
+          <td>0.7872</td>
+          <td>0.5177</td>
+        </tr>
+        <tr>
+          <td>UNICSV</td>
+          <td>0.9307</td>
+          <td>0.7723</td>
+          <td>0.9527</td>
+          <td>0.9673</td>
+          <td>0.7810</td>
+          <td>0.7090</td>
+          <td>0.8948</td>
+          <td>0.9193</td>
+          <td>0.8723</td>
+          <td>0.8975</td>
+          <td>0.7477</td>
+          <td>0.7526</td>
+        </tr>
+        <tr>
+          <td>SIMCSV</td>
+          <td>0.9305</td>
+          <td>0.7718</td>
+          <td>0.9398</td>
+          <td>0.9671</td>
+          <td>0.7813</td>
+          <td>0.7376</td>
+          <td>0.8968</td>
+          <td>0.9193</td>
+          <td>0.8722</td>
+          <td>0.8977</td>
+          <td>0.7799</td>
+          <td>0.7524</td>
+        </tr>
+        <tr>
+          <td>Reference</td>
+          <td>0.9489</td>
+          <td>0.7633</td>
+          <td>0.0880</td>
+          <td>0.6344</td>
+          <td>0.7557</td>
+          <td>0.6374</td>
+          <td>0.9056</td>
+          <td>0.8165</td>
+          <td>0.7002</td>
+          <td>0.1841</td>
+          <td>0.8060</td>
+          <td>0.8947</td>
+        </tr>
+        <tr>
+          <td>Lotus</td>
+          <td>0.9489</td>
+          <td>0.7113</td>
+          <td>0.0972</td>
+          <td>0.4947</td>
+          <td>0.6115</td>
+          <td>0.3107</td>
+          <td>0.9029</td>
+          <td>0.8048</td>
+          <td>0.8393</td>
+          <td>0.1788</td>
+          <td>0.6007</td>
+          <td>0.7955</td>
+        </tr>
+        <tr>
+          <td>BARGAIN</td>
+          <td>0.9140</td>
+          <td>0.5616</td>
+          <td>0.0296</td>
+          <td>0.5954</td>
+          <td>0.1979</td>
+          <td>0.0947</td>
+          <td>0.6878</td>
+          <td>0.7722</td>
+          <td>0.3429</td>
+          <td>0.3697</td>
+          <td>0.8589</td>
+          <td>0.5831</td>
+        </tr>
+        <tr>
+          <td>UNICSV</td>
+          <td>0.9336</td>
+          <td>0.7097</td>
+          <td>0.0880</td>
+          <td>0.0623</td>
+          <td>0.7601</td>
+          <td>0.6340</td>
+          <td>0.9039</td>
+          <td>0.8249</td>
+          <td>0.7800</td>
+          <td>0.2179</td>
+          <td>0.8348</td>
+          <td>0.8588</td>
+        </tr>
+        <tr>
+          <td>SIMCSV</td>
+          <td>0.9335</td>
+          <td>0.7092</td>
+          <td>0.0906</td>
+          <td>0.0679</td>
+          <td>0.7555</td>
+          <td>0.6589</td>
+          <td>0.9052</td>
+          <td>0.8249</td>
+          <td>0.7799</td>
+          <td>0.2175</td>
+          <td>0.8550</td>
+          <td>0.8586</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Reports Accuracy (top half) and F1 (bottom half) for all methods across 12 queries. Key takeaway: UniCSV and SimCSV are comparable to Reference and more stable than Lotus/BARGAIN. BARGAIN shows extreme instability (e.g., F1=0.1979 on CB-Q2).</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 3
+      <span class="src">Table 3</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Hyper-parameter Effects on the Performance of UniCSV and SimCSV</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Acc.</th>
+          <th>F1</th>
+          <th>Acc.</th>
+          <th>F1</th>
+          <th>Acc.</th>
+          <th>F1</th>
+          <th>Acc.</th>
+          <th>F1</th>
+          <th>Acc.</th>
+          <th>F1</th>
+          <th>Acc.</th>
+          <th>F1</th>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>0.9079</td>
+          <td>0.9138</td>
+          <td>0.7780</td>
+          <td>0.7492</td>
+          <td>0.9168</td>
+          <td>0.8210</td>
+          <td>0.9082</td>
+          <td>0.9140</td>
+          <td>0.7739</td>
+          <td>0.7450</td>
+          <td>0.9168</td>
+          <td>0.8209</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>0.9307</td>
+          <td>0.9336</td>
+          <td>0.7852</td>
+          <td>0.7601</td>
+          <td>0.9192</td>
+          <td>0.8248</td>
+          <td>0.9305</td>
+          <td>0.9335</td>
+          <td>0.7803</td>
+          <td>0.7539</td>
+          <td>0.9193</td>
+          <td>0.8249</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>0.9367</td>
+          <td>0.9367</td>
+          <td>0.7829</td>
+          <td>0.7597</td>
+          <td>0.9202</td>
+          <td>0.8264</td>
+          <td>0.9388</td>
+          <td>0.9384</td>
+          <td>0.7774</td>
+          <td>0.7534</td>
+          <td>0.9202</td>
+          <td>0.8264</td>
+        </tr>
+        <tr>
+          <td>16</td>
+          <td>0.9424</td>
+          <td>0.9438</td>
+          <td>0.7815</td>
+          <td>0.7564</td>
+          <td>0.9200</td>
+          <td>0.8262</td>
+          <td>0.9379</td>
+          <td>0.9396</td>
+          <td>0.7788</td>
+          <td>0.7546</td>
+          <td>0.9199</td>
+          <td>0.8260</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>0.9307</td>
+          <td>0.9336</td>
+          <td>0.7852</td>
+          <td>0.7601</td>
+          <td>0.9192</td>
+          <td>0.8248</td>
+          <td>0.9305</td>
+          <td>0.9335</td>
+          <td>0.7803</td>
+          <td>0.7539</td>
+          <td>0.9193</td>
+          <td>0.8249</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td>0.9304</td>
+          <td>0.9334</td>
+          <td>0.7794</td>
+          <td>0.7518</td>
+          <td>0.9192</td>
+          <td>0.8248</td>
+          <td>0.9459</td>
+          <td>0.9470</td>
+          <td>0.7756</td>
+          <td>0.7493</td>
+          <td>0.9193</td>
+          <td>0.8249</td>
+        </tr>
+        <tr>
+          <td>15</td>
+          <td>0.9304</td>
+          <td>0.9334</td>
+          <td>0.7802</td>
+          <td>0.7537</td>
+          <td>0.9193</td>
+          <td>0.8250</td>
+          <td>0.9439</td>
+          <td>0.9453</td>
+          <td>0.7828</td>
+          <td>0.7568</td>
+          <td>0.9192</td>
+          <td>0.8248</td>
+        </tr>
+        <tr>
+          <td>20</td>
+          <td>0.9308</td>
+          <td>0.9337</td>
+          <td>0.7803</td>
+          <td>0.7536</td>
+          <td>0.9191</td>
+          <td>0.8246</td>
+          <td>0.9306</td>
+          <td>0.9335</td>
+          <td>0.7827</td>
+          <td>0.7565</td>
+          <td>0.9191</td>
+          <td>0.8248</td>
+        </tr>
+        <tr>
+          <td>25</td>
+          <td>0.9307</td>
+          <td>0.9336</td>
+          <td>0.7788</td>
+          <td>0.7513</td>
+          <td>0.9192</td>
+          <td>0.8248</td>
+          <td>0.9307</td>
+          <td>0.9337</td>
+          <td>0.7861</td>
+          <td>0.7603</td>
+          <td>0.9191</td>
+          <td>0.8246</td>
+        </tr>
+        <tr>
+          <td>0.10</td>
+          <td>0.9302</td>
+          <td>0.9333</td>
+          <td>0.7803</td>
+          <td>0.7547</td>
+          <td>0.9193</td>
+          <td>0.8249</td>
+          <td>0.9312</td>
+          <td>0.9341</td>
+          <td>0.7814</td>
+          <td>0.7551</td>
+          <td>0.9193</td>
+          <td>0.8249</td>
+        </tr>
+        <tr>
+          <td>0.15</td>
+          <td>0.9307</td>
+          <td>0.9336</td>
+          <td>0.7852</td>
+          <td>0.7601</td>
+          <td>0.9192</td>
+          <td>0.8248</td>
+          <td>0.9305</td>
+          <td>0.9335</td>
+          <td>0.7803</td>
+          <td>0.7539</td>
+          <td>0.9193</td>
+          <td>0.8249</td>
+        </tr>
+        <tr>
+          <td>0.20</td>
+          <td>0.9304</td>
+          <td>0.9334</td>
+          <td>0.7852</td>
+          <td>0.7595</td>
+          <td>0.9193</td>
+          <td>0.8249</td>
+          <td>0.9304</td>
+          <td>0.9334</td>
+          <td>0.7839</td>
+          <td>0.7575</td>
+          <td>0.9193</td>
+          <td>0.8248</td>
+        </tr>
+        <tr>
+          <td>0.50</td>
+          <td>0.9304</td>
+          <td>0.9334</td>
+          <td>0.7959</td>
+          <td>0.7956</td>
+          <td>0.9193</td>
+          <td>0.8249</td>
+          <td>0.9304</td>
+          <td>0.9334</td>
+          <td>0.7953</td>
+          <td>0.7950</td>
+          <td>0.9193</td>
+          <td>0.8345</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Shows Accuracy and F1 across varying #clusters (2-16), sample ratios (5-25‰), and lower bounds (0.10-0.50). Key finding: performance is robust across a broad range of parameters; sample ratio has almost no impact on effectiveness.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 4
+      <span class="src">Table 4</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Ablation Study of Re-clustering</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th></th>
+          <th>Method</th>
+          <th>RV-Q1</th>
+          <th>RV-Q3</th>
+          <th>CB-Q1</th>
+          <th>CB-Q2</th>
+          <th>CB-Q3</th>
+          <th>AD-Q2</th>
+        </tr>
+        <tr>
+          <td>UNICSV (w/o RC)</td>
+          <td>0.9229</td>
+          <td>0.9939</td>
+          <td>0.9677</td>
+          <td>0.7475</td>
+          <td>0.6403</td>
+          <td>0.9243</td>
+        </tr>
+        <tr>
+          <td>SIMCSV (w/o RC)</td>
+          <td>0.9230</td>
+          <td>0.9939</td>
+          <td>0.9677</td>
+          <td>0.7469</td>
+          <td>0.6403</td>
+          <td>0.9240</td>
+        </tr>
+        <tr>
+          <td>UNICSV (w/ RC)</td>
+          <td>0.9301</td>
+          <td>0.9527</td>
+          <td>0.9673</td>
+          <td>0.7813</td>
+          <td>0.7090</td>
+          <td>0.9193</td>
+        </tr>
+        <tr>
+          <td>SIMCSV (w/ RC)</td>
+          <td>0.9305</td>
+          <td>0.9398</td>
+          <td>0.9671</td>
+          <td>0.7813</td>
+          <td>0.7376</td>
+          <td>0.9193</td>
+        </tr>
+        <tr>
+          <td>UNICSV (w/o RC)</td>
+          <td>0.9272</td>
+          <td>0</td>
+          <td>0.0619</td>
+          <td>0.7010</td>
+          <td>0.5302</td>
+          <td>0.8347</td>
+        </tr>
+        <tr>
+          <td>SIMCSV (w/o RC)</td>
+          <td>0.9273</td>
+          <td>0</td>
+          <td>0.0619</td>
+          <td>0.7003</td>
+          <td>0.5302</td>
+          <td>0.8345</td>
+        </tr>
+        <tr>
+          <td>UNICSV (w/ RC)</td>
+          <td>0.9336</td>
+          <td>0.0880</td>
+          <td>0.0623</td>
+          <td>0.7601</td>
+          <td>0.6340</td>
+          <td>0.8249</td>
+        </tr>
+        <tr>
+          <td>SIMCSV (w/ RC)</td>
+          <td>0.9335</td>
+          <td>0.0906</td>
+          <td>0.0679</td>
+          <td>0.7555</td>
+          <td>0.6589</td>
+          <td>0.8249</td>
+        </tr>
+        <tr>
+          <td>UNICSV (w/o RC)</td>
+          <td>404</td>
+          <td>404</td>
+          <td>404</td>
+          <td>404</td>
+          <td>404</td>
+          <td>2008</td>
+        </tr>
+        <tr>
+          <td>SIMCSV (w/o RC)</td>
+          <td>404</td>
+          <td>404</td>
+          <td>404</td>
+          <td>404</td>
+          <td>404</td>
+          <td>2008</td>
+        </tr>
+        <tr>
+          <td>UNICSV (w/ RC)</td>
+          <td>404</td>
+          <td>22760</td>
+          <td>404</td>
+          <td>7423</td>
+          <td>5196</td>
+          <td>2008</td>
+        </tr>
+        <tr>
+          <td>SIMCSV (w/ RC)</td>
+          <td>404</td>
+          <td>29683</td>
+          <td>404</td>
+          <td>7378</td>
+          <td>7586</td>
+          <td>2008</td>
+        </tr>
+        <tr>
+          <td>UNICSV (w RC)</td>
+          <td>0</td>
+          <td>0.44</td>
+          <td>0</td>
+          <td>1.47</td>
+          <td>3.27</td>
+          <td>0</td>
+        </tr>
+        <tr>
+          <td>SIMCSV (w RC)</td>
+          <td>0</td>
+          <td>0.29</td>
+          <td>0</td>
+          <td>1.37</td>
+          <td>2.05</td>
+          <td>0</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Compares w/ and w/o re-clustering on Accuracy, F1, # LLM calls, and re-clustering time. Re-clustering is critical for queries with impure initial clusters (RV-Q3, CB-Q2, CB-Q3) but adds negligible overhead (<3.3% of runtime).</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 5
+      <span class="src">Table 5</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Gap between Theory and Practice</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Est.</th>
+          <th>Err.</th>
+          <th>ξ(‰)</th>
+          <th>Est.</th>
+          <th>Err.</th>
+          <th>ξ(‰)</th>
+        </tr>
+        <tr>
+          <td>0.10</td>
+          <td>0.9991</td>
+          <td>0.0628</td>
+          <td>13.0</td>
+          <td>0.9980</td>
+          <td>0.0622</td>
+          <td>26.4</td>
+        </tr>
+        <tr>
+          <td>0.15</td>
+          <td>0.9997</td>
+          <td>0.0633</td>
+          <td>6.4</td>
+          <td>0.9997</td>
+          <td>0.0635</td>
+          <td>12.7</td>
+        </tr>
+        <tr>
+          <td>0.20</td>
+          <td>0.9997</td>
+          <td>0.0636</td>
+          <td>3.9</td>
+          <td>0.9997</td>
+          <td>0.0637</td>
+          <td>7.8</td>
+        </tr>
+        <tr>
+          <td>0.25</td>
+          <td>0.9999</td>
+          <td>0.0637</td>
+          <td>2.7</td>
+          <td>0.9999</td>
+          <td>0.0635</td>
+          <td>5.4</td>
+        </tr>
+        <tr>
+          <td>0.30</td>
+          <td>0.9999</td>
+          <td>0.0635</td>
+          <td>2.0</td>
+          <td>0.9999</td>
+          <td>0.0637</td>
+          <td>4.0</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Shows theoretical error bound ε, required sample ratio ξ, empirical estimation accuracy (Est.), and actual error (Err.) for UniVote and SimVote. Practical error is consistently much smaller than theoretical bounds, supporting that small sample ratios suffice.</p>
+    </details>
+  </div>
+</div>
 
 <!-- EXPERIMENTAL SETUP -->
 <div class="section">
   <div class="section-title"><span class="section-icon" style="background:#8b5e00">E</span> Experimental Setup</div>
 
   <div class="card">
-    <div class="card-title">Datasets (1)</div>
+    <div class="card-title">Datasets (5)</div>
     <table>
       <tr><th>Dataset</th><th>Domain</th><th>Size</th><th>Source</th></tr>
       <tr>
-        <td>Real-world datasets</td>
-        <td>Various</td>
-        <td class="num">None</td>
-        <td><span class="src">abstract</span></td>
+        <td>IMDB-Review</td>
+        <td>Movie review sentiment classification</td>
+        <td class="num">50,000 reviews</td>
+        <td><span class="src">Section 4.1</span></td>
+      </tr>
+      <tr>
+        <td>Codebase</td>
+        <td>User self-introduction texts</td>
+        <td class="num">9,378 rows</td>
+        <td><span class="src">Section 4.1</span></td>
+      </tr>
+      <tr>
+        <td>Airdialogue</td>
+        <td>Airline ticketing dialog classification</td>
+        <td class="num">402,035 dialogs</td>
+        <td><span class="src">Section 4.1</span></td>
+      </tr>
+      <tr>
+        <td>TC (Twitter Hate Speech)</td>
+        <td>Social media hate speech detection</td>
+        <td class="num">24,783 tweets</td>
+        <td><span class="src">Section 4.1</span></td>
+      </tr>
+      <tr>
+        <td>Fever</td>
+        <td>Fact extraction and verification</td>
+        <td class="num">Not specified (large-scale, cleaned version)</td>
+        <td><span class="src">Section 4.1</span></td>
       </tr>
     </table>
   </div>
 
   <div class="card">
-    <div class="card-title">Baselines (1)</div>
+    <div class="card-title">Baselines (3)</div>
     <div class="cmp">
-      <span class="cmp-label">State-of-the-art semantic filter approaches</span>
-      <span class="cmp-val">Existing approaches for semantic filtering that require &lt;strong&gt;linear LLM invocations&lt;/strong&gt; (tuple-by-tuple evaluation). Specific baseline names not available from abstract alone. <span class="src">abstract</span></span>
+      <span class="cmp-label">Reference</span>
+      <span class="cmp-val">Straightforward linear scan invoking one LLM call M(t, e) for each tuple t ∈ T sequentially or in parallel. O(|T|) LLM invocations. <span class="src">Section 2.2, Section 4.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Lotus</span>
+      <span class="cmp-val">Two-stage model cascade: uses a cheaper proxy LLM (&lt;strong&gt;LLaMA-3.2-3B&lt;/strong&gt;) to compute proxy scores and learn thresholds τ+ and τ−, forwarding ambiguous tuples to a more powerful oracle LLM (&lt;strong&gt;LLaMA-3.1-8B&lt;/strong&gt;). State-of-the-art semantic filter approach. <span class="src">Section 2.2, Section 4.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">BARGAIN</span>
+      <span class="cmp-val">Model cascade framework similar to Lotus with provable bounds on recall, precision, and accuracy. Partitions tuples into score regions and progressively samples from high-score to low-score regions. Configured with accuracy target 0.85 and tolerance 0.05. Uses &lt;strong&gt;LLaMA-3.2-3B&lt;/strong&gt; and &lt;strong&gt;LLaMA-3.1-8B&lt;/strong&gt;. <span class="src">Section 2.2, Section 4.1</span></span>
     </div>
   </div>
 
@@ -260,10 +1112,40 @@ details[open] summary { margin-bottom: 0.5rem; }
     <table>
       <tr><th>Description</th><th>Metric</th><th>Value</th><th>Source</th></tr>
       <tr>
-        <td>CSV reduces the number of LLM calls by <strong>1.28-355x</strong> compared to state-of-the-art approaches while maintaining comparable <strong>Accuracy</strong> and <strong>F1 score</strong>.</td>
-        <td>LLM call reduction</td>
-        <td class="num ">1.28-355x</td>
-        <td><span class="src">abstract</span></td>
+        <td>UniCSV and SimCSV reduce LLM calls by <strong>1.28-200×</strong> compared to Reference, <strong>1.81-355×</strong> compared to Lotus, and <strong>1.68-200×</strong> compared to BARGAIN across all datasets.</td>
+        <td># LLM Calls</td>
+        <td class="num ">1.28-355× reduction</td>
+        <td><span class="src">Section 4.2, Figure 4</span></td>
+      </tr>
+      <tr>
+        <td>On RV-Q1, UniCSV and SimCSV require only <strong>404 LLM calls</strong>, completing in under <strong>13 seconds</strong> with approximately <strong>170k tokens</strong>, while baselines require tens of thousands of calls, runtimes exceeding <strong>1,000 seconds</strong>, and token usage exceeding <strong>20 million</strong>.</td>
+        <td># LLM Calls, Execution Time, Token Consumption</td>
+        <td class="num ">404 calls, &lt;13s, ~170k tokens</td>
+        <td><span class="src">Section 4.2</span></td>
+      </tr>
+      <tr>
+        <td>UniCSV and SimCSV demonstrate <strong>comparable Accuracy and F1</strong> to Reference across most queries, and <strong>outperform Lotus and BARGAIN</strong> on most queries. BARGAIN shows highly unstable quality (e.g., F1 drops to <strong>0.1979</strong> on CB-Q2 and <strong>0.3429</strong> on AD-Q3).</td>
+        <td>Accuracy, F1</td>
+        <td class="num ">Comparable to Reference</td>
+        <td><span class="src">Table 2</span></td>
+      </tr>
+      <tr>
+        <td>Re-clustering improves Accuracy by up to <strong>9.7%</strong> and F1 by more than <strong>12%</strong> on CB-Q3, while adding less than <strong>3.3%</strong> of total runtime overhead.</td>
+        <td>Accuracy, F1, Runtime overhead</td>
+        <td class="num ">Up to 9.7% Accuracy improvement</td>
+        <td><span class="src">Table 4, Section 4.4</span></td>
+      </tr>
+      <tr>
+        <td>Practical error is <strong>much smaller</strong> than theoretical guaranteed error. For ε=0.10, UniVote achieves Est.=0.9991 with Err.=0.0628 at ξ=13.0‰; for ε=0.30, Est.=0.9999 with Err.=0.0635 at ξ=2.0‰.</td>
+        <td>Theoretical vs Practical Error</td>
+        <td class="num ">Practical error &lt;&lt; theoretical bound</td>
+        <td><span class="src">Table 5, Section 4.5</span></td>
+      </tr>
+      <tr>
+        <td>On 180 synthetic queries across IMDB-Review and TC, UniCSV and SimCSV achieve <strong>high Accuracy</strong> across diverse predicate types (Explicit, Interpretive, Hybrid) and difficulty levels, while consistently reducing LLM calls. F1 drops for hard Interpretive/Hybrid predicates due to extremely low selectivity.</td>
+        <td>Accuracy, F1, # LLM Calls</td>
+        <td class="num ">High accuracy across 180 synthetic queries</td>
+        <td><span class="src">Section 4.6, Figure 6</span></td>
       </tr>
     </table>
   </div>
@@ -272,21 +1154,36 @@ details[open] summary { margin-bottom: 0.5rem; }
     <div class="card-title">Metrics</div>
     <div class="cmp">
       <span class="cmp-label">Accuracy</span>
-      <span class="cmp-val">Proportion of correctly classified tuples (positive/negative) by the semantic filter. <span class="src">abstract</span></span>
+      <span class="cmp-val">Fraction of tuples correctly classified (matching ground-truth or Reference LLM output). <span class="src">Section 4.1</span></span>
     </div>
     <div class="cmp">
       <span class="cmp-label">F1 Score</span>
-      <span class="cmp-val">Harmonic mean of precision and recall for the semantic filter classification. <span class="src">abstract</span></span>
+      <span class="cmp-val">Harmonic mean of precision and recall for the semantic filter classification. <span class="src">Section 4.1</span></span>
     </div>
     <div class="cmp">
-      <span class="cmp-label">Number of LLM calls</span>
-      <span class="cmp-val">Total number of LLM invocations required to process the entire table, measuring efficiency. <span class="src">abstract</span></span>
+      <span class="cmp-label">Recall</span>
+      <span class="cmp-val">Fraction of true positives correctly identified. <span class="src">Section 4.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Execution Time</span>
+      <span class="cmp-val">End-to-end wall-clock time required to complete the semantic operator. <span class="src">Section 4.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label"># LLM Calls</span>
+      <span class="cmp-val">Total number of LLM invocations, counted by number of prompts issued regardless of batching. <span class="src">Section 4.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Token Consumption</span>
+      <span class="cmp-val">Total number of tokens processed including both input (prompt) and output tokens. <span class="src">Section 4.1</span></span>
     </div>
   </div>
 
   <div class="card">
     <div class="card-title">Experimental Settings</div>
-    <div class="cmp"><span class="cmp-label">Accuracy Target</span><span class="cmp-val">Comparable accuracy and F1 to full linear evaluation</span></div>
+    <div class="cmp"><span class="cmp-label">Oracle Model</span><span class="cmp-val">LLaMA-3.1-8B (default), also tested with LLaMA-70B and GPT-4o</span></div>
+    <div class="cmp"><span class="cmp-label">Proxy Models</span><span class="cmp-val">E5-Large (embedding model, not a proxy LLM), LLaMA-3.2-3B (used by Lotus and BARGAIN baselines)</span></div>
+    <div class="cmp"><span class="cmp-label">Hardware</span><span class="cmp-val">Single 80GB NVIDIA A100 GPU with vLLM inference engine</span></div>
+    <div class="cmp"><span class="cmp-label">Accuracy Target</span><span class="cmp-val">No fixed accuracy target; error tolerance ε is user-specified (default lb=0.15, ub=0.85)</span></div>
   </div>
 </div>
 
@@ -296,15 +1193,33 @@ details[open] summary { margin-bottom: 0.5rem; }
     <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions</div>
     <div class="card">
       <div class="cmp">
-        <span class="cmp-label">Implicit</span>
-        <span class="cmp-val">Tuples that are semantically similar (in embedding space) are likely to have the same filter label with respect to the natural language predicate.
-          <span class="src">abstract</span>
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Semantically similar inputs (tuples close in embedding space) tend to elicit consistent outputs from LLMs.
+          <span class="src">Section 3, Figure 2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">The system prompt and predicate expression are identical for all tuples in a given filter query; only the tuple content varies, so variability in LLM output is fully driven by the tuple.
+          <span class="src">Section 3</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">For SimVote's Lemma 3.5, the sampling is uniform from the cluster, which allows the mean of similarity-weighted scores to equal the mean of sampled labels.
+          <span class="src">Lemma 3.5</span>
         </span>
       </div>
       <div class="cmp">
         <span class="cmp-label">Implicit</span>
-        <span class="cmp-val">Semantic embeddings can capture the relevant aspects of tuple content for the given predicate, enabling meaningful clustering.
-          <span class="src">abstract</span>
+        <span class="cmp-val">Clusters produced by K-means on embeddings will be sufficiently pure (dominated by a single label) for most predicates.
+          <span class="src">Section 3.1, Figure 1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Implicit</span>
+        <span class="cmp-val">The LLM's binary output for each tuple is treated as a fixed ground truth (x_i = I(M(t_i, e))) for the theoretical analysis, ignoring LLM stochasticity.
+          <span class="src">Section 3.2</span>
         </span>
       </div>
     </div>
@@ -314,9 +1229,39 @@ details[open] summary { margin-bottom: 0.5rem; }
     <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations</div>
     <div class="card">
       <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">For queries with extremely low selectivity (e.g., CB-Q1 with selectivity 0.033), random samples may contain few or no positives, leading to sampling failures and low F1 scores.
+          <span class="src">Section 4.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">In the worst case, CSV falls back to O(|T|) LLM invocations (linear complexity), same as the Reference baseline.
+          <span class="src">Section 3.1 (Complexity Analysis)</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">For hard Interpretive/Hybrid predicates with very few true positives, F1 drops because Accuracy can remain high due to label skew while F1 reveals missed rare positives.
+          <span class="src">Section 4.6</span>
+        </span>
+      </div>
+      <div class="cmp">
         <span class="cmp-label">Inferred</span>
-        <span class="cmp-val">Only abstract and metadata are available for extraction; full paper details on theoretical guarantees, specific datasets, baselines, and experimental configurations could not be extracted.
-          <span class="src">not_found</span>
+        <span class="cmp-val">The approach requires offline embedding computation and clustering, which adds preprocessing cost (though this is amortized across queries).
+          <span class="src">Section 3.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">SimVote theoretically yields looser error bounds than UniVote due to the weight variance factor v, requiring larger sampling ratios for the same theoretical guarantee.
+          <span class="src">Section 4.5, Table 5</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Inferred</span>
+        <span class="cmp-val">The BM25 weighting parameter α requires manual tuning per query type.
+          <span class="src">Section 4.1</span>
         </span>
       </div>
     </div>
@@ -328,40 +1273,40 @@ details[open] summary { margin-bottom: 0.5rem; }
       <table>
         <tr><th>Anchor Paper</th><th>Relationship</th><th>Detail</th><th>Source</th></tr>
         <tr>
-          <td>lotus</td>
-          <td>Extends</td>
-          <td>CSV addresses the &lt;strong&gt;semantic filter operator&lt;/strong&gt; which is a cornerstone of the &lt;strong&gt;semantic operators&lt;/strong&gt; framework proposed in LOTUS. CSV optimizes the execution of semantic filters from linear to sublinear LLM invocations.</td>
-          <td><span class="src">abstract</span></td>
+          <td>bargain</td>
+          <td>Shared Baseline</td>
+          <td>&lt;strong&gt;BARGAIN&lt;/strong&gt; is used as a primary baseline. CSV directly compares against BARGAIN on all 12 queries, showing &lt;strong&gt;1.68-200× fewer LLM calls&lt;/strong&gt; and more stable accuracy/F1. The paper critiques BARGAIN&#39;s reliance on proxy LLM confidence scores, which suffer from neural network overconfidence, and its linear proxy scan requirement.</td>
+          <td><span class="src">Section 2.2, Section 4.2, Table 2, Figure 4</span></td>
         </tr>
         <tr>
-          <td>bargain</td>
-          <td>Complements</td>
-          <td>Both CSV and BARGAIN aim to &lt;strong&gt;reduce LLM costs&lt;/strong&gt; while providing &lt;strong&gt;guarantees&lt;/strong&gt;. BARGAIN focuses on cost-accuracy tradeoffs with statistical guarantees, while CSV achieves sublinear complexity through clustering-sampling-voting with error guarantees.</td>
-          <td><span class="src">abstract</span></td>
+          <td>lotus</td>
+          <td>Shared Baseline</td>
+          <td>&lt;strong&gt;Lotus&lt;/strong&gt; is used as a primary baseline and the paper&#39;s semantic filter definition follows Lotus&#39;s formulation. CSV shows &lt;strong&gt;1.81-355× fewer LLM calls&lt;/strong&gt; than Lotus. The paper critiques Lotus&#39;s two-stage cascade for not breaking the linear LLM invocation barrier and for unstable threshold learning when proxy scores concentrate in narrow intervals.</td>
+          <td><span class="src">Section 2.2, Section 4.2, Table 2, Figure 4</span></td>
         </tr>
         <tr>
           <td>task_cascades</td>
           <td>Complements</td>
-          <td>Task cascades reduce costs by routing through cheaper models first, while CSV reduces costs by &lt;strong&gt;avoiding per-tuple LLM invocation entirely&lt;/strong&gt; through cluster-level inference. Both aim to break the linear invocation pattern.</td>
-          <td><span class="src">abstract</span></td>
-        </tr>
-        <tr>
-          <td>scaledoc</td>
-          <td>Complements</td>
-          <td>Both papers address scaling LLM-based predicates over large collections. ScaleDoc focuses on document collections while CSV focuses on &lt;strong&gt;tabular semantic filtering&lt;/strong&gt; with sublinear invocation guarantees.</td>
-          <td><span class="src">abstract</span></td>
-        </tr>
-        <tr>
-          <td>thriftllm</td>
-          <td>Complements</td>
-          <td>ThriftLLM optimizes cost by selecting among multiple LLMs, while CSV optimizes cost by &lt;strong&gt;reducing the number of invocations&lt;/strong&gt; regardless of which LLM is used. The approaches are orthogonal and could be combined.</td>
-          <td><span class="src">abstract</span></td>
+          <td>CSV addresses the same problem of reducing LLM invocation costs for semantic operations but takes a fundamentally different approach: instead of cascading between models of different sizes/costs, CSV uses &lt;strong&gt;embedding-based clustering and voting&lt;/strong&gt; to avoid LLM calls entirely for most tuples.</td>
+          <td><span class="src">Section 2.2, Section 5</span></td>
         </tr>
         <tr>
           <td>nirvana</td>
           <td>Complements</td>
-          <td>Both papers deal with semantic-aware data processing. Nirvana focuses on multi-modal analytics while CSV specifically optimizes the &lt;strong&gt;semantic filter&lt;/strong&gt; operator for efficiency.</td>
-          <td><span class="src">abstract</span></td>
+          <td>Both papers address semantic query processing over semi-structured/unstructured data. CSV focuses specifically on optimizing the semantic filter operator, while Nirvana addresses broader multi-modal analytics.</td>
+          <td><span class="src">Section 5</span></td>
+        </tr>
+        <tr>
+          <td>scaledoc</td>
+          <td>Complements</td>
+          <td>Both papers address scaling LLM-based predicates over large collections. CSV&#39;s clustering-sampling-voting approach provides an alternative to document-level scaling strategies.</td>
+          <td><span class="src">Section 5</span></td>
+        </tr>
+        <tr>
+          <td>thriftllm</td>
+          <td>Complements</td>
+          <td>Both papers aim to reduce LLM costs for classification tasks. ThriftLLM focuses on model selection across multiple LLMs, while CSV reduces the number of invocations to a single LLM via clustering and voting.</td>
+          <td><span class="src">Section 5</span></td>
         </tr>
       </table>
     </div>
@@ -371,7 +1316,7 @@ details[open] summary { margin-bottom: 0.5rem; }
 <!-- FOOTER -->
 <div class="footer">
   <p>Deep Paper Review — Research Paper Toolkit v0.1</p>
-  <p>Extraction date: 2026-03-30 | Level 2 | <span class="src">source tags</span> indicate extraction provenance</p>
+  <p>Extraction date: 2026-03-31 | Level 2 | <span class="src">source tags</span> indicate extraction provenance</p>
   <p style="margin-top:0.5rem"><span class="src src-missing">orange tags</span> = information not found, needs verification</p>
 </div>
 

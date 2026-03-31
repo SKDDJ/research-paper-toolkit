@@ -68,26 +68,47 @@ details[open] summary { margin-bottom: 0.5rem; }
 <div class="container">
 
 <h1>Cross-Paper Comparison</h1>
-<p class="subtitle">{{ total_papers }} papers compared | {{ comparison_date }} | Framework: {{ framework_name }}</p>
+<p class="subtitle">{{ total_papers }} papers compared ({{ usable_papers }} usable) | {{ comparison_date }} | Framework: {{ framework_name }}</p>
 
 <!-- PAPER OVERVIEW -->
 <div class="section">
   <div class="section-title"><span class="section-icon" style="background:#1a4f8b">P</span> Paper Overview</div>
   <div class="overflow-x">
   <table>
-    <tr><th>ID</th><th>Title</th><th>Venue</th><th>Year</th><th>Summary</th></tr>
+    <tr><th>ID</th><th>Title</th><th>Venue</th><th>Year</th><th>Quality</th><th>Summary</th></tr>
     {% for p in papers %}
     <tr>
       <td style="font-family:var(--mono); font-weight:600; white-space:nowrap">{{ p.short_id }}</td>
-      <td><a href="https://arxiv.org/abs/{{ p.arxiv_id }}" style="color:var(--blue); text-decoration:none">{{ p.title }}</a></td>
-      <td style="white-space:nowrap">{{ p.venue }}</td>
-      <td>{{ p.year }}</td>
+      <td><a href="https://arxiv.org/abs/{{ p.arxiv_id }}" style="color:var(--blue); text-decoration:none">{{ p.title or '(extraction failed)' }}</a></td>
+      <td style="white-space:nowrap">{{ p.venue or '—' }}</td>
+      <td>{{ p.year or '—' }}</td>
+      <td>{% if p.quality_grade == 'good' %}<span class="badge badge-info">good</span>{% elif p.quality_grade == 'partial' %}<span class="badge badge-medium">partial</span>{% elif p.quality_grade == 'unusable' %}<span class="badge badge-high">unusable</span>{% else %}<span class="badge badge-low">—</span>{% endif %}</td>
       <td style="font-size:0.78rem; color:var(--muted)">{{ p.one_line_summary }}</td>
     </tr>
     {% endfor %}
   </table>
   </div>
 </div>
+
+<!-- DATA QUALITY WARNINGS -->
+{% if quality_warnings %}
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">Q</span> Data Quality Warnings</div>
+  {% for w in quality_warnings %}
+  <div class="gap-card {% if w.grade == 'unusable' %}high{% else %}medium{% endif %}">
+    <div class="gap-title">
+      <span style="font-family:var(--mono)">{{ w.paper }}</span>
+      <span class="badge {% if w.grade == 'unusable' %}badge-high{% else %}badge-medium{% endif %}">{{ w.grade }}</span>
+      <span style="font-size:0.7rem; color:var(--muted); font-family:var(--mono)">score={{ w.score }}</span>
+      {% if w.content_source %}<span style="font-size:0.7rem; color:var(--muted)">source: {{ w.content_source }}</span>{% endif %}
+    </div>
+    <div class="gap-desc">
+      {% for issue in w.issues %}{{ issue }}{% if not loop.last %} · {% endif %}{% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
 <!-- RESEARCH GAPS -->
 {% if gaps %}
@@ -108,10 +129,10 @@ details[open] summary { margin-bottom: 0.5rem; }
   <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Framework Mapping Overlay — {{ framework_name }}</div>
   <div class="fw-overlay">
     {% for row in framework_overlay %}
-    <div class="fw-row {% if row.coverage <= total_papers // 3 %}sparse{% endif %}">
+    <div class="fw-row {% if row.coverage <= usable_papers // 3 %}sparse{% endif %}">
       <div class="fw-row-header">
         <span>{{ loop.index }}. {{ row.layer }}</span>
-        <span class="fw-row-coverage">{{ row.coverage }}/{{ total_papers }} papers</span>
+        <span class="fw-row-coverage">{{ row.coverage }}/{{ usable_papers }} usable papers</span>
       </div>
       <div class="fw-papers">
         {% for p in row.papers %}

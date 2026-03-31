@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Deep Review — Cut Costs, Not Accuracy: LLM-Powered Data Processing with Guarantees</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #faf9f6; --card: #ffffff; --border: #e8e6e1; --text: #1a1a1a;
+  --muted: #6b6860; --accent: #2d5a27; --accent-bg: #eef4ed; --accent-border: #c2d9bf;
+  --warn: #8b5e00; --warn-bg: #fef7ec; --warn-border: #f0d9a0;
+  --danger: #8b1a1a; --danger-bg: #fdf0f0;
+  --blue: #1a4f8b; --blue-bg: #edf3fb; --blue-border: #b8d0eb;
+  --purple: #4a2d7a; --purple-bg: #f3eff8;
+  --radius: 6px; --font: 'DM Sans', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif; --mono: 'JetBrains Mono', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+.paper-header { margin-bottom: 2rem; }
+.paper-header h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.5rem; }
+.meta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 500; }
+.badge-venue { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.badge-year { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.badge-level { background: var(--purple-bg); color: var(--purple); border: 1px solid #d4c8e8; }
+.authors { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.25rem; }
+.authors strong { color: var(--text); font-weight: 500; }
+.institution { font-size: 0.8rem; color: var(--muted); }
+.links { margin-top: 0.5rem; display: flex; gap: 0.75rem; }
+.links a { font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; }
+.links a:hover { text-decoration: underline; }
+.section { margin-bottom: 1.5rem; }
+.section-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.section-icon { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: white; flex-shrink: 0; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 0.75rem; }
+.card-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.src { display: inline-block; font-size: 0.65rem; font-family: var(--mono); padding: 1px 6px; border-radius: 3px; background: #f0eeea; color: var(--muted); margin-left: 4px; cursor: help; border: 1px solid var(--border); }
+.src-missing { background: var(--danger-bg); color: var(--danger); border-color: #e8c0c0; }
+.framework-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+@media (max-width: 600px) { .framework-grid { grid-template-columns: 1fr; } }
+.fw-cell { padding: 0.75rem; border-radius: var(--radius); border-left: 3px solid; }
+.fw-cell h4 { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.fw-cell p { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.fw-1 { background: #f0f7ff; border-color: #3b82f6; } .fw-1 h4 { color: #1e40af; }
+.fw-2 { background: #fef7f0; border-color: #f59e0b; } .fw-2 h4 { color: #92400e; }
+.fw-3 { background: #f0fdf4; border-color: #22c55e; } .fw-3 h4 { color: #166534; }
+.fw-4 { background: #fdf2f8; border-color: #ec4899; } .fw-4 h4 { color: #9d174d; }
+.fw-5 { background: #f5f3ff; border-color: #8b5cf6; } .fw-5 h4 { color: #5b21b6; }
+.fw-6 { background: #fffbeb; border-color: #eab308; } .fw-6 h4 { color: #854d0e; }
+.fw-7 { background: #fef2f2; border-color: #ef4444; } .fw-7 h4 { color: #991b1b; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { text-align: left; font-weight: 600; padding: 0.5rem 0.75rem; background: #f5f4f0; border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: #faf9f6; }
+.num { font-family: var(--mono); font-size: 0.8rem; }
+.best { font-weight: 600; color: var(--accent); }
+details { margin-bottom: 0.5rem; }
+details summary { cursor: pointer; font-weight: 500; font-size: 0.85rem; padding: 0.5rem; border-radius: var(--radius); }
+details summary:hover { background: #f5f4f0; }
+details[open] summary { margin-bottom: 0.5rem; }
+.callout { padding: 0.75rem 1rem; border-radius: var(--radius); margin-bottom: 0.75rem; font-size: 0.85rem; line-height: 1.6; }
+.callout-insight { background: var(--accent-bg); border: 1px solid var(--accent-border); }
+.callout-caution { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+.callout-label { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; display: block; }
+.callout-insight .callout-label { color: var(--accent); }
+.callout-caution .callout-label { color: var(--warn); }
+.cmp { display: flex; gap: 0.5rem; align-items: baseline; margin-bottom: 0.25rem; font-size: 0.82rem; }
+.cmp-label { font-weight: 500; min-width: 100px; flex-shrink: 0; }
+.cmp-val { color: var(--muted); }
+.footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+/* Emphasis for key terms and values */
+.card strong, .fw-cell strong, .cmp-val strong { color: var(--text); font-weight: 600; }
+.key-value { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+
+/* Formula blocks */
+.formula-card { background: #f8f7f4; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
+.formula-card .formula-id { font-family: var(--mono); font-size: 0.75rem; color: var(--blue); font-weight: 600; }
+.formula-card .formula-desc { font-size: 0.82rem; color: var(--muted); margin-top: 0.25rem; }
+.formula-card .formula-latex { font-size: 1rem; margin: 0.5rem 0; }
+
+/* Table rendering within key tables */
+.card table { margin-top: 0.5rem; }
+.card table td { font-family: var(--mono); font-size: 0.78rem; }
+
+/* Figure cards */
+.figure-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem; margin-bottom: 0.5rem; }
+.figure-card img { max-width: 100%; border-radius: 4px; margin-bottom: 0.5rem; }
+.figure-card .fig-caption { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+.figure-card .fig-id { font-weight: 600; font-size: 0.82rem; margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="paper-header">
+  <h1>Cut Costs, Not Accuracy: LLM-Powered Data Processing with Guarantees</h1>
+  <div class="meta-row">
+    <span class="badge badge-venue">arXiv preprint</span>
+    <span class="badge badge-year">2025</span>
+    <span class="badge badge-level">Level 2 Review</span>
+  </div>
+  <div class="authors">
+    <strong>Sepanta Zeighami</strong>,     <strong>Shreya Shankar</strong>,     <strong>Aditya Parameswaran</strong>  </div>
+  <div class="institution">UC Berkeley</div>
+  <div class="links">
+    <a href="https://arxiv.org/abs/2509.02896">arXiv</a>
+    <a href="https://arxiv.org/pdf/2509.02896.pdf">PDF</a>
+  </div>
+</div>
+
+<!-- CORE CONTRIBUTION -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">S</span> Core Contribution</div>
+  <div class="card">
+    <p style="font-size:0.9rem"><strong>BARGAIN</strong> is a method for LLM-powered data processing using <strong>model cascades</strong> that employs a novel <strong>adaptive sampling strategy</strong> and <strong>variance-aware statistical estimation</strong> procedure (building on anytime-valid hypothesis tests by Waudby-Smith and Ramdas) to set cascade thresholds with <strong>rigorous theoretical guarantees</strong> on accuracy, precision, or recall. Unlike prior work (SUPG) that provides only asymptotic guarantees via CLT, BARGAIN provides finite-sample guarantees while achieving significantly better utility by exploiting data and task characteristics, including the observation that <strong>sample variance decreases as quality increases</strong>.
+      <span class="src">Section 1, Section 3</span>
+    </p>
+  </div>
+</div>
+
+<!-- FRAMEWORK MAPPING (Level 2 only) -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">F</span> Mapping to Dr. Lan&#39;s 7-Layer Semantic Filter Framework</div>
+  <div class="framework-grid">
+    <div class="fw-cell fw-1">
+      <h4>1. Data Representation Layer</h4>
+      <p>Each record x_i in dataset D has an <strong>oracle output O(x_i)</strong>, a <strong>proxy output P(x_i)</strong>, and a <strong>proxy score S(x_i) ∈ [0,1]</strong> representing the proxy's confidence. For binary classification (PT/RT), proxy scores represent confidence in the positive class. For multi-class (AT), proxy scores represent confidence in the predicted class. Records are ordered/grouped by proxy scores for threshold-based decisions.
+        <span class="src">Section 2.1, Section 2.2</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-2">
+      <h4>2. Candidate Executor / Proxy Layer</h4>
+      <p>The system uses a <strong>model cascade</strong> with an expensive <strong>oracle model</strong> (e.g., GPT-4o, Claude Sonnet) and a cheap <strong>proxy model</strong> (e.g., GPT-4o-mini, Claude Haiku). The proxy cost is assumed negligible relative to the oracle (>10× cost difference). The proxy provides both outputs and <strong>confidence scores</strong> (e.g., logprobabilities). Extensions to <strong>multiple proxies</strong> are discussed in Section D.
+        <span class="src">Section 2.1, Section 1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-3">
+      <h4>3. Unit of Decision Layer</h4>
+      <p>Each record is independently classified as proxy-processable or oracle-required based on whether its <strong>proxy score exceeds the cascade threshold ρ</strong>. Records with S(x) > ρ use the proxy answer; others use the oracle. The decision unit is a single record, and the threshold ρ is a global parameter determined by the sampling/estimation procedure.
+        <span class="src">Section 2.2, Figure 1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-4">
+      <h4>4. Predicate Transformation Layer</h4>
+      <p>The user's quality target (accuracy T, precision T, or recall T) is transformed into a series of <strong>hypothesis tests</strong> at candidate thresholds. For each candidate threshold ρ, BARGAIN tests whether the true quality metric (P_D(ρ), A_D(ρ), or R_D(ρ)) meets T using the <strong>estimation function E^BARGAIN</strong>. For <strong>BARGAIN_A-M</strong>, the accuracy target is decomposed into <strong>per-class accuracy targets</strong> with separate thresholds per class.
+        <span class="src">Section 3.1, Section 4.1.3</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-5">
+      <h4>5. Calibration / Sampling Layer</h4>
+      <p><strong>BARGAIN's adaptive sampling</strong> iterates through candidate thresholds in decreasing order, sampling records from D^ρ (records with proxy score > ρ) until the estimation function confirms the threshold meets the target. This contrasts with SUPG's importance sampling (based on proxy scores, ignoring the target) and the naive approach's uniform sampling. The <strong>anytime-valid</strong> property of the Waudby-Smith-Ramdas test allows repeated testing during sampling without error inflation. For RT queries, a <strong>positive density pre-filtering</strong> step uses binary search to focus sampling on regions with high positive density.
+        <span class="src">Section 3.3, Section 4.2.2</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-6">
+      <h4>6. Routing / Action Layer</h4>
+      <p>After determining the cascade threshold ρ*, records with proxy score > ρ* are routed to the <strong>proxy model</strong> and records with score ≤ ρ* are routed to the <strong>oracle model</strong>. For AT queries, sampled records during threshold determination are also labeled by the oracle. For PT/RT queries, the oracle budget k is split between sampling and final labeling. The <strong>selection procedure</strong> chooses the threshold maximizing utility (minimum ρ for PT/AT to maximize recall/minimize cost; maximum ρ for RT to maximize precision).
+        <span class="src">Section 2.2, Section 3.2.2, Section 4.2.1</span>
+      </p>
+    </div>
+    <div class="fw-cell fw-7">
+      <h4>7. Guarantee Layer</h4>
+      <p>BARGAIN provides <strong>rigorous finite-sample guarantees</strong>: P(quality_metric ≥ T) ≥ 1-δ for user-specified target T and failure probability δ. This is achieved through: (1) <strong>Waudby-Smith-Ramdas anytime-valid tests</strong> (Lemma 2.1) providing tighter bounds than Hoeffding by incorporating empirical variance, (2) <strong>data-aware threshold selection</strong> (Lemma 3.5) with tolerance parameter η avoiding |C|-factor in failure probability, and (3) <strong>union bound</strong> across candidate thresholds. For RT queries with β>0, guarantees apply to the <strong>dense subset</strong> dense_β(D) rather than all of D. SUPG only provides <strong>asymptotic (CLT-based)</strong> guarantees that can fail with small samples.
+        <span class="src">Lemma 3.3, Lemma 3.4, Lemma 3.5, Lemma 3.6, Section 4.2.2</span>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- METHOD COMPONENTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#2d5a27">M</span> Method Components</div>
+  <div class="card">
+    <details open>
+      <summary>Variance-Aware Estimation Function (E^BARGAIN)</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Replaces naive Hoeffding-based estimation with a <strong>hypothesis testing approach</strong> using results from <strong>Waudby-Smith and Ramdas [43]</strong> that incorporates <strong>empirical variance</strong> into the test statistic. The key insight is that the variance of observed precision decreases as true precision increases (Eq. 20), so <strong>E^BARGAIN</strong> provides increasingly tighter estimates for high-quality thresholds. The estimation function tests whether the true mean of indicator random variables exceeds the target T using an <strong>anytime-valid</strong> martingale-based test.
+        <span class="src">Section 3.2.1, Lemma 3.4</span>
+      </p>
+    </details>
+    <details>
+      <summary>Data-Aware Threshold Selection with Tolerance Parameter η</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Instead of applying union bound over all |C| candidate thresholds (which splits failure probability δ/|C|), BARGAIN uses a <strong>tolerance parameter η</strong> that captures how often true precision oscillates around the target. The selection procedure (Eq. 11) chooses the smallest threshold where at most η larger thresholds are estimated to miss the target. Since <strong>precision is typically monotonically decreasing</strong> in real-world datasets, setting <strong>η=0</strong> suffices, avoiding dependence on |C| in the failure probability bound.
+        <span class="src">Section 3.2.2, Lemma 3.5</span>
+      </p>
+    </details>
+    <details>
+      <summary>Adaptive Sampling (BARGAIN_P-A, BARGAIN_A-A)</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Instead of uniform upfront sampling, <strong>BARGAIN iterates through candidate thresholds in decreasing order</strong> and, for each threshold, <strong>adaptively samples records from D^ρ</strong> until the estimation function confirms the threshold meets the target or the budget is exhausted. This avoids wasting samples on low proxy-score records that are uninformative for high-threshold estimation, and directs the sampling budget to where it is most needed. The <strong>anytime-valid</strong> property of the statistical test enables repeated testing during sampling without inflating error.
+        <span class="src">Section 3.3, Algorithm 2</span>
+      </p>
+    </details>
+    <details>
+      <summary>BARGAIN_A-A for Accuracy Target Queries</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Adapts the framework for <strong>AT queries</strong> where the goal is to minimize oracle calls while meeting an accuracy target. Uses estimation function <strong>E_A^BARGAIN</strong> that tests whether proxy accuracy R_D(ρ) ≥ T by observing I[O(x)=P(x)] for sampled records. Includes an <strong>early stopping criterion</strong> based on whether T is within one standard deviation of the sample mean, avoiding excessive sampling at thresholds unlikely to meet the target.
+        <span class="src">Section 4.1, Algorithm 3</span>
+      </p>
+    </details>
+    <details>
+      <summary>BARGAIN_A-M (Multi-class per-class thresholds)</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">Extension of <strong>BARGAIN_A-A</strong> for multi-class classification that sets a <strong>separate cascade threshold per output class</strong>. Runs BARGAIN_A-A L times (for L classes), beneficial when the proxy is <strong>differently calibrated across classes</strong>.
+        <span class="src">Section 4.1.3, Section B.4.2</span>
+      </p>
+    </details>
+    <details>
+      <summary>BARGAIN_R-A for Recall Target Queries with Pre-filtering</summary>
+      <p style="font-size:0.85rem; padding: 0.5rem; color: var(--muted)">For <strong>RT queries</strong>, uses a <strong>positive density</strong> concept d_r(ρ) to pre-filter records. Performs <strong>binary search</strong> on proxy scores to find a cutoff ρ_P where positive density exceeds a minimum threshold β, then runs BARGAIN_R-U on D^{ρ_P}. Addresses the challenge that uniform sampling yields few positives when the positive class is rare. Includes an <strong>impossibility result</strong> showing that no approach can guarantee high utility on all datasets when positives are scarce.
+        <span class="src">Section 4.2.2, Algorithm 4</span>
+      </p>
+    </details>
+  </div>
+</div>
+
+<!-- THEORETICAL RESULTS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b1a1a">T</span> Theoretical Results</div>
+  <div class="card">
+    <div class="cmp">
+      <span class="cmp-label">Lemma</span>
+      <span class="cmp-val">For cascade threshold ρ_S^{naive} returned by the naive method, P(P_D(ρ_S^{naive}) < T) ≤ δ
+        <span class="src">Lemma 3.3</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Lemma</span>
+      <span class="cmp-val">E^BARGAIN has false positive probability bounded by α: for any ρ with P_D(ρ) < T, P(E^BARGAIN(S,T,ρ,α)=1) ≤ α
+        <span class="src">Lemma 3.4</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Lemma</span>
+      <span class="cmp-val">Setting ρ* via Eq. 11 with tolerance η, P(P_D(ρ*) < T) ≤ (η+1)α, removing dependence on |C|
+        <span class="src">Lemma 3.5</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Lemma</span>
+      <span class="cmp-val">BARGAIN_P-U provides the guarantee P(P_D(ρ_S^{BARGAIN_P-U}) < T) ≤ δ
+        <span class="src">Lemma 3.6</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Theorem</span>
+      <span class="cmp-val">BARGAIN_P-A provides the same theoretical guarantees as BARGAIN_P-U via anytime-valid testing
+        <span class="src">Section 3.3 (proof overview)</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Proposition</span>
+      <span class="cmp-val">Impossibility result for RT queries: any approach sampling with probability monotonically increasing in proxy scores that guarantees meeting recall target on all datasets must provide low precision when positive records are few
+        <span class="src">Section 4.2.2, Section B.6.2</span>
+      </span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Proposition</span>
+      <span class="cmp-val">The variance of observed precision Var(P_S(ρ)) = (1/|S_O^ρ|) P_D(ρ)(1-P_D(ρ)), which decreases as true precision P_D(ρ) increases toward 1
+        <span class="src">Eq. 20, Section B.2.1</span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- KEY FORMULAS -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#1a4f8b">Q</span> Key Formulas</div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 5</span>
+    <span class="src">Section 3.1, Eq. 5</span>
+    <div class="formula-latex">\[\mathcal{E}^{\text{naive}}(S, T, \rho, \alpha) = \mathbb{I}\left[\mathcal{P}_S(\rho) \geq T + \sqrt{\frac{\log(1/\alpha)}{2|S^\rho|}}\right]\]</div>
+    <div class="formula-desc">Naive estimation function using Hoeffding&#39;s inequality to test if threshold ρ meets precision target T</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 9</span>
+    <span class="src">Section 3.2.1, Eq. 9</span>
+    <div class="formula-latex">\[\mathcal{E}^{\text{BARGAIN}}(S, T, \rho, \alpha) = \mathcal{T}(T, S_O^\rho, \alpha)\]</div>
+    <div class="formula-desc">BARGAIN estimation function using the Waudby-Smith and Ramdas hypothesis test T on oracle label indicators</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 11</span>
+    <span class="src">Section 3.2.2, Eq. 11</span>
+    <div class="formula-latex">\[\rho^* = \min\left\{\rho; \rho \in \mathrm{C}, \mathcal{E}(S, T, \rho, \alpha) = 1, \gamma_\rho \leq \eta\right\}\]</div>
+    <div class="formula-desc">Threshold selection with tolerance parameter η, where γ_ρ counts thresholds above ρ estimated to miss the target</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 12</span>
+    <span class="src">Section 3.3, Eq. 12</span>
+    <div class="formula-latex">\[\mathrm{C}_M = \left\{\mathcal{S}(x_i); i = \left\lfloor \frac{j}{M} n \right\rfloor, j \in [M]\right\}\]</div>
+    <div class="formula-desc">Candidate threshold set of size M containing evenly-spaced percentiles of proxy scores</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 20</span>
+    <span class="src">Section B.2.1, Eq. 20</span>
+    <div class="formula-latex">\[\text{Var}(\mathcal{P}_S(\rho)) = \frac{1}{|S_O^\rho|} \mathcal{P}_D(\rho)(1 - \mathcal{P}_D(\rho))\]</div>
+    <div class="formula-desc">Variance of observed precision decreases as true precision increases, key insight enabling BARGAIN&#39;s improved estimation</div>
+  </div>
+  <div class="formula-card">
+    <span class="formula-id">Eq. 15</span>
+    <span class="src">Appendix B, Eq. 15</span>
+    <div class="formula-latex">\[\mathcal{K}(m, Y) = \Pi_{j=1}^{i}\left(1 + \min\left(\lambda_j, \frac{3}{4m}\right) \times (Y_j - m)\right)\]</div>
+    <div class="formula-desc">Test martingale from Waudby-Smith and Ramdas used in the hypothesis test, incorporating empirical variance via λ_j</div>
+  </div>
+</div>
+
+<!-- KEY FIGURES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#4a2d7a">G</span> Key Figures</div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 1
+      <span class="src">Figure 1</span>
+    </div>
+    <img src="images/7dee65d8d6a8c40bc08cfbee15d0b26443a40936ff69ea84ef2b460e6818e526.jpg" alt="Figure 1" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Overview of Model Cascade</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows the model cascade framework: proxy processes all records producing scores, then based on cascade threshold ρ, records above threshold use proxy output while others go to oracle. Bottom shows the 3-step process: (1) Sample &amp; Label, (2) Estimate quality at thresholds, (3) Select threshold.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 2
+      <span class="src">Figure 2</span>
+    </div>
+    <img src="images/4f6a42c83206474020968c2740f65f3335d9f89621c3c792d9e843ec9636bae6.jpg" alt="Figure 2" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Summary of AT Query Results</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Bar charts showing average utility across 8 datasets for AT, PT, and RT queries at targets 0.7 and 0.9. BARGAIN consistently and substantially outperforms both SUPG and Naive across all query types and targets.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 3
+      <span class="src">Figure 3</span>
+    </div>
+    <img src="images/e32d3f4e12e4cf52f3aef366883181445b68ce458c5241f0db72351ff83078e0.jpg" alt="Figure 3" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Example BARGAIN workflow for AT queries</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Illustrates BARGAIN&#39;s adaptive sampling on a toy dataset. Shows cumulative samples vs proxy scores for BARGAIN and SUPG, demonstrating how BARGAIN concentrates samples where they are informative (high proxy scores) while SUPG wastes samples at low scores. BARGAIN finds threshold 0.6 vs SUPG&#39;s 0.9, avoiding many more oracle calls.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 5
+      <span class="src">Figure 5</span>
+    </div>
+    <img src="images/41d5b07f0cf29013915bf2b3e28acc501d8dd53fb1d8f78570579e8d067eac03.jpg" alt="Figure 5" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Comparison of different estimation methods</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Plots T*_ρ (maximum target a threshold is estimated to meet) for E^BARGAIN vs E^naive on Court dataset. Shows E^BARGAIN provides increasingly better estimates as true precision increases, due to leveraging lower variance at high-precision thresholds.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 6
+      <span class="src">Figure 6</span>
+    </div>
+    <img src="images/ccf50e5a3bbe024127504df6289a3e0ee3fe6628058457aa194fbad3bc35bdfd.jpg" alt="Figure 6" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Ground-truth precision at different thresholds</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows P_D(ρ) across 6 real-world datasets, demonstrating that precision is typically &lt;strong&gt;monotonically decreasing&lt;/strong&gt; in threshold, justifying the η=0 setting for the tolerance parameter.</div>
+  </div>
+  <div class="figure-card">
+    <div class="fig-id">Figure 9
+      <span class="src">Figure 9</span>
+    </div>
+    <img src="images/1f82c6661ea377f33d9fa22ed9a5371a1af866805cca97efc4e9fc568e7186c1.jpg" alt="Figure 9" loading="lazy">
+    <div class="fig-caption"><strong>Caption:</strong> Positive density in real-world datasets</div>
+    <div class="fig-caption" style="margin-top:0.25rem">Shows positive density d_r(ρ) across datasets. For Onto and Imagenet, positive density is zero for most proxy scores with non-zero density only at very high scores, motivating BARGAIN_R-A&#39;s pre-filtering approach.</div>
+  </div>
+</div>
+
+<!-- KEY TABLES -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">B</span> Key Tables</div>
+  <div class="card">
+    <div class="card-title">Table 1
+      <span class="src">Table 1</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Overview of Approaches</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>Quality Guarantee</th>
+          <th>Sample Effectiveness</th>
+          <th>Threshold Est. Accuracy</th>
+        </tr>
+        <tr>
+          <td>SUPG</td>
+          <td>Asymptotic</td>
+          <td>Medium</td>
+          <td>Medium</td>
+        </tr>
+        <tr>
+          <td>Naive</td>
+          <td>Yes</td>
+          <td>Low</td>
+          <td>Low</td>
+        </tr>
+        <tr>
+          <td>BARGAIN</td>
+          <td>Yes</td>
+          <td>High</td>
+          <td>High</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Compares SUPG, Naive, and BARGAIN across three dimensions: Quality Guarantee (Asymptotic vs Yes), Sample Effectiveness (Medium/Low/High), and Threshold Estimation Accuracy (Medium/Low/High). BARGAIN is the only method with both strong guarantees and high effectiveness.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 5
+      <span class="src">Table 5</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Main experimental results across all datasets and query types</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th></th>
+          <th>Reviews</th>
+          <th>Court Opinion</th>
+          <th>Screenplay</th>
+          <th>Wiki Talk</th>
+          <th>Onto</th>
+          <th>Imagenet</th>
+          <th>Tacred</th>
+          <th>NS</th>
+        </tr>
+        <tr>
+          <td>SUPG</td>
+          <td>3.2</td>
+          <td>24.4</td>
+          <td>1.5</td>
+          <td>4.4</td>
+          <td>73.5</td>
+          <td>84.7</td>
+          <td>80.1</td>
+          <td>7.5</td>
+        </tr>
+        <tr>
+          <td>Naive</td>
+          <td>0.0 (-100.0)</td>
+          <td>0.0 (-100.0)</td>
+          <td>6.8 (+362)</td>
+          <td>0.0 (-100.0)</td>
+          <td>73.6 (+0.1)</td>
+          <td>84.6 (-0.1)</td>
+          <td>79.9 (-0.2)</td>
+          <td>0.0 (-100.0)</td>
+        </tr>
+        <tr>
+          <td>BARGAINA-A</td>
+          <td>41.8 (+1218)</td>
+          <td>48.0 (+96.5)</td>
+          <td>0.0 (-100.0)</td>
+          <td>48.1 (+984)</td>
+          <td>97.7 (+32.9)</td>
+          <td>99.7 (+17.8)</td>
+          <td>97.0 (+21.2)</td>
+          <td>65.3 (+765)</td>
+        </tr>
+        <tr>
+          <td>BARGAINA-M</td>
+          <td>36.7 (+1060)</td>
+          <td>58.6 (+139)</td>
+          <td>11.1 (+655)</td>
+          <td>42.9 (+865)</td>
+          <td>98.9 (+34.6)</td>
+          <td>99.9 (+18.0)</td>
+          <td>99.2 (+24.0)</td>
+          <td>75.7 (+903)</td>
+        </tr>
+        <tr>
+          <td>SUPG</td>
+          <td>59.4</td>
+          <td>75.6</td>
+          <td>44.2</td>
+          <td>54.9</td>
+          <td>49.1</td>
+          <td>89.7</td>
+          <td>33.5</td>
+          <td>10.2</td>
+        </tr>
+        <tr>
+          <td>Naive</td>
+          <td>47.0 (-20.9)</td>
+          <td>39.9 (-47.2)</td>
+          <td>40.2 (-9.1)</td>
+          <td>40.3 (-26.6)</td>
+          <td>3.4 (-93.1)</td>
+          <td>0.7 (-99.2)</td>
+          <td>1.7 (-95.0)</td>
+          <td>3.9 (-61.6)</td>
+        </tr>
+        <tr>
+          <td>BARGAINP-U</td>
+          <td>54.2 (-8.7)</td>
+          <td>86.5 (+14.4)</td>
+          <td>40.2 (-9.2)</td>
+          <td>43.1 (-21.5)</td>
+          <td>3.5 (-92.8)</td>
+          <td>1.0 (-98.9)</td>
+          <td>1.7 (-95.1)</td>
+          <td>4.1 (-60.1)</td>
+        </tr>
+        <tr>
+          <td>BARGAINP-A</td>
+          <td>89.0 (+49.8)</td>
+          <td>84.2 (+11.4)</td>
+          <td>73.4 (+65.9)</td>
+          <td>86.3 (+57.2)</td>
+          <td>88.2 (+79.8)</td>
+          <td>100 (+11.5)</td>
+          <td>61.5 (+83.3)</td>
+          <td>44.6 (+337)</td>
+        </tr>
+        <tr>
+          <td>SUPG</td>
+          <td>34.3</td>
+          <td>77.5</td>
+          <td>27.9</td>
+          <td>45.9</td>
+          <td>13.2 [MT]</td>
+          <td>90.3</td>
+          <td>11.1</td>
+          <td>45.3</td>
+        </tr>
+        <tr>
+          <td>Naive</td>
+          <td>22.9 (-33.1)</td>
+          <td>74.8 (-3.5)</td>
+          <td>21.8 (-21.8)</td>
+          <td>24.8 (-46.0)</td>
+          <td>2.5 (-81.0)</td>
+          <td>0.1 (-99.9)</td>
+          <td>2.4 (-78.8)</td>
+          <td>31.3 (-31.0)</td>
+        </tr>
+        <tr>
+          <td>BARGAINR-U</td>
+          <td>40.9 (+19.2)</td>
+          <td>82.7 (+6.7)</td>
+          <td>32.6 (+16.8)</td>
+          <td>52.3 (+14.0)</td>
+          <td>2.5 (-81.0)</td>
+          <td>0.1 (-99.9)</td>
+          <td>2.4 (-78.8)</td>
+          <td>59.1 (+30.5)</td>
+        </tr>
+        <tr>
+          <td>BARGAINR-A</td>
+          <td>39.7 (+15.9)</td>
+          <td>82.0 (+5.9)</td>
+          <td>33.0 (+18.2)</td>
+          <td>50.9 (+10.9)</td>
+          <td>28.0 (+112)</td>
+          <td>97.8 (+8.3)</td>
+          <td>22.0 (+97.8)</td>
+          <td>56.1 (+23.8)</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Comprehensive results for AT (T=0.9), PT (T=0.9), and RT (T=0.9) queries across 8 datasets. Shows utility values and percentage improvement over SUPG in parentheses. BARGAIN_A-M dominates for AT, BARGAIN_P-A for PT, and BARGAIN_R-A for RT. Key takeaway: BARGAIN variants achieve massive improvements especially on imbalanced datasets (Onto, Imagenet, Tacred).</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 7
+      <span class="src">Table 7</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Ablation comparing estimation methods at T=0.9</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Method</th>
+          <th>AT</th>
+          <th>PT</th>
+          <th>RT</th>
+        </tr>
+        <tr>
+          <td>SUPG</td>
+          <td>27.8</td>
+          <td>46.7</td>
+          <td>36.5</td>
+        </tr>
+        <tr>
+          <td>Hoeff.</td>
+          <td>22.9</td>
+          <td>22.1</td>
+          <td>25.7</td>
+        </tr>
+        <tr>
+          <td>Chern.</td>
+          <td>24.3</td>
+          <td>22.6</td>
+          <td>30.6</td>
+        </tr>
+        <tr>
+          <td>BARGAIN*-A</td>
+          <td>60.5</td>
+          <td>74.6</td>
+          <td>44.5</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Compares SUPG, Hoeffding-based, Chernoff-based, and BARGAIN*-A estimation across AT/PT/RT. Shows BARGAIN*-A (with adaptive sampling) dramatically outperforms all uniform-sampling variants, confirming adaptive sampling is the key differentiator.</p>
+    </details>
+  </div>
+  <div class="card">
+    <div class="card-title">Table 8
+      <span class="src">Table 8</span>
+    </div>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:0.5rem">Target miss rates</p>
+    <div style="overflow-x:auto; margin:0.5rem 0">
+      <table>
+        <tr>
+          <th>Method</th>
+        </tr>
+        <tr>
+          <td>Naive</td>
+        </tr>
+        <tr>
+          <td>Naive with Eq. 11</td>
+        </tr>
+        <tr>
+          <td>Method</td>
+          <td>AT</td>
+          <td>PT</td>
+          <td>RT</td>
+        </tr>
+        <tr>
+          <td>SUPG</td>
+          <td>4.7</td>
+          <td>3.3</td>
+          <td>13.7</td>
+        </tr>
+        <tr>
+          <td>Naive</td>
+          <td>1.9</td>
+          <td>1.6</td>
+          <td>0.7</td>
+        </tr>
+        <tr>
+          <td>BARGAIN*-A</td>
+          <td>3.7</td>
+          <td>2.1</td>
+          <td>8.0</td>
+        </tr>
+      </table>
+    </div>
+    <details>
+      <summary style="font-size:0.82rem; color: var(--muted)">LLM Analysis</summary>
+      <p style="font-size:0.85rem; padding:0.5rem">Shows average target miss rates across datasets for δ=0.1. SUPG misses targets 4.7% (AT), 3.3% (PT), 13.7% (RT). BARGAIN misses 3.7%, 2.1%, 8.0% — all within the δ=10% budget. Naive has lowest miss rates (1.9%, 1.6%, 0.7%) but at the cost of very poor utility.</p>
+    </details>
+  </div>
+</div>
+
+<!-- EXPERIMENTAL SETUP -->
+<div class="section">
+  <div class="section-title"><span class="section-icon" style="background:#8b5e00">E</span> Experimental Setup</div>
+
+  <div class="card">
+    <div class="card-title">Datasets (8)</div>
+    <table>
+      <tr><th>Dataset</th><th>Domain</th><th>Size</th><th>Source</th></tr>
+      <tr>
+        <td>Reviews</td>
+        <td>Text classification</td>
+        <td class="num">855 records</td>
+        <td><span class="src">Table 4, Section 6.1</span></td>
+      </tr>
+      <tr>
+        <td>Court Opinion</td>
+        <td>Legal text classification</td>
+        <td class="num">1,000 records</td>
+        <td><span class="src">Table 4, Section 6.1</span></td>
+      </tr>
+      <tr>
+        <td>Screenplay</td>
+        <td>Text classification</td>
+        <td class="num">1,000 records</td>
+        <td><span class="src">Table 4, Section 6.1</span></td>
+      </tr>
+      <tr>
+        <td>Wiki Talk</td>
+        <td>Text classification</td>
+        <td class="num">1,000 records</td>
+        <td><span class="src">Table 4, Section 6.1</span></td>
+      </tr>
+      <tr>
+        <td>Onto (OntoNotes)</td>
+        <td>Named entity recognition</td>
+        <td class="num">11,165 records</td>
+        <td><span class="src">Table 4, Section 6.1</span></td>
+      </tr>
+      <tr>
+        <td>Imagenet</td>
+        <td>Image classification</td>
+        <td class="num">50,000 records</td>
+        <td><span class="src">Table 4, Section 6.1</span></td>
+      </tr>
+      <tr>
+        <td>Tacred</td>
+        <td>Relation extraction</td>
+        <td class="num">22,631 records</td>
+        <td><span class="src">Table 4, Section 6.1</span></td>
+      </tr>
+      <tr>
+        <td>NS (News Summarization)</td>
+        <td>Text summarization/classification</td>
+        <td class="num">973,085 records</td>
+        <td><span class="src">Table 4, Section 6.1</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Baselines (3)</div>
+    <div class="cmp">
+      <span class="cmp-label">SUPG</span>
+      <span class="cmp-val">State-of-the-art method from Kang et al. [21] that uses &lt;strong&gt;CLT-based estimation&lt;/strong&gt; and &lt;strong&gt;importance sampling&lt;/strong&gt; based on proxy scores. Provides only asymptotic guarantees. Used for PT and RT queries; extended by authors for AT queries. <span class="src">Section 6.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Naive</span>
+      <span class="cmp-val">Black-box application of &lt;strong&gt;Hoeffding&#39;s inequality&lt;/strong&gt; with &lt;strong&gt;uniform sampling&lt;/strong&gt; and union bound over all candidate thresholds. Provides the same strong finite-sample guarantees as BARGAIN but without data/task-aware optimizations. <span class="src">Section 3.1, Section 6.1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">BARGAIN_P-U / BARGAIN_R-U</span>
+      <span class="cmp-val">Ablation variants of BARGAIN that use &lt;strong&gt;uniform sampling&lt;/strong&gt; instead of adaptive sampling, but with the improved estimation function E^BARGAIN and data-aware threshold selection. <span class="src">Section 3.2, Section 6.1</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key Results</div>
+    <table>
+      <tr><th>Description</th><th>Metric</th><th>Value</th><th>Source</th></tr>
+      <tr>
+        <td>For AT queries at T=0.9, <strong>BARGAIN_A-M</strong> achieves <strong>75.7%</strong> oracle usage avoided on NS dataset vs <strong>7.5%</strong> for SUPG, a <strong>903%</strong> improvement. Averaged across datasets, BARGAIN reduces oracle usage by up to <strong>86%</strong> more than SUPG.</td>
+        <td>Oracle Usage Avoided</td>
+        <td class="num ">Up to 86% more than SUPG (average)</td>
+        <td><span class="src">Table 5, Figure 2</span></td>
+      </tr>
+      <tr>
+        <td>For PT queries at T=0.9, <strong>BARGAIN_P-A</strong> achieves <strong>100%</strong> recall on Imagenet vs <strong>89.7%</strong> for SUPG (+11.5%). On Onto, BARGAIN_P-A achieves <strong>88.2%</strong> recall vs <strong>49.1%</strong> for SUPG (+79.8%). Average improvement up to <strong>118%</strong> over SUPG.</td>
+        <td>Recall (PT utility)</td>
+        <td class="num ">Up to 118% improvement over SUPG</td>
+        <td><span class="src">Table 5, Figure 2</span></td>
+      </tr>
+      <tr>
+        <td>For RT queries at T=0.9, <strong>BARGAIN_R-A</strong> achieves <strong>97.8%</strong> precision on Imagenet vs <strong>90.3%</strong> for SUPG (+8.3%). Average improvement up to <strong>19%</strong> over SUPG.</td>
+        <td>Precision (RT utility)</td>
+        <td class="num ">Up to 19% improvement over SUPG</td>
+        <td><span class="src">Table 5, Figure 2</span></td>
+      </tr>
+      <tr>
+        <td>SUPG misses the quality target more than <strong>75%</strong> of the time on some datasets when δ=0.1, while BARGAIN consistently meets targets. SUPG's average target miss rate is <strong>4.7%</strong> (AT), <strong>3.3%</strong> (PT), <strong>13.7%</strong> (RT) vs BARGAIN's <strong>3.7%</strong>, <strong>2.1%</strong>, <strong>8.0%</strong> — all within the δ=10% budget.</td>
+        <td>Target Miss Rate</td>
+        <td class="num ">SUPG misses &gt;75% on some datasets; BARGAIN always within δ</td>
+        <td><span class="src">Table 8, Section 6.2</span></td>
+      </tr>
+      <tr>
+        <td>Adaptive sampling variants (<strong>BARGAIN*-A</strong>) dramatically outperform uniform sampling variants (<strong>BARGAIN*-U</strong>). For PT at T=0.9, BARGAIN_P-A achieves <strong>74.6%</strong> average recall vs <strong>22.1%</strong> for BARGAIN_P-U (Hoeffding-based uniform).</td>
+        <td>Recall (PT utility)</td>
+        <td class="num ">74.6% vs 22.1%</td>
+        <td><span class="src">Table 7</span></td>
+      </tr>
+      <tr>
+        <td>On the Onto dataset with [MT] marker, SUPG misses the recall target, demonstrating its weak asymptotic guarantees fail on real data.</td>
+        <td>Target Miss Rate</td>
+        <td class="num ">SUPG misses target on Onto RT</td>
+        <td><span class="src">Table 5</span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Metrics</div>
+    <div class="cmp">
+      <span class="cmp-label">Oracle Usage Avoided (AT queries)</span>
+      <span class="cmp-val">Percentage of records processed by the proxy instead of the oracle, i.e., fraction of oracle calls avoided. Higher is better. <span class="src">Section 2.1, Section 6.2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Recall (PT queries utility)</span>
+      <span class="cmp-val">Recall of the returned answer set, R(Ŷ) = Σ_{i∈Ŷ} O(x_i) / n+, maximized while meeting precision target. <span class="src">Section 2.1, Eq. 2</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Precision (RT queries utility)</span>
+      <span class="cmp-val">Precision of the returned answer set, P(Ŷ) = Σ_{i∈Ŷ} O(x_i) / |Ŷ|, maximized while meeting recall target. <span class="src">Section 2.1, Eq. 1</span></span>
+    </div>
+    <div class="cmp">
+      <span class="cmp-label">Target Miss Rate</span>
+      <span class="cmp-val">Fraction of runs where the quality target (accuracy, precision, or recall) is not met. Should be ≤ δ. <span class="src">Section 6.2</span></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Experimental Settings</div>
+    <div class="cmp"><span class="cmp-label">Oracle Model</span><span class="cmp-val">GPT-4o (for LLM datasets), ground truth labels (for benchmark datasets)</span></div>
+    <div class="cmp"><span class="cmp-label">Proxy Models</span><span class="cmp-val">GPT-4o-mini (for LLM datasets), Various models producing proxy scores for benchmark datasets</span></div>
+    <div class="cmp"><span class="cmp-label">Hardware</span><span class="cmp-val">not_found</span></div>
+    <div class="cmp"><span class="cmp-label">Accuracy Target</span><span class="cmp-val">T ∈ {0.7, 0.9}, δ = 0.1</span></div>
+  </div>
+</div>
+
+<!-- ANALYSIS (Level 2 only) -->
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#6b6860">A</span> Assumptions</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Oracle cost is much larger than proxy cost (proxy cost is negligible), typically >10× difference
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Proxy scores are well-calibrated, i.e., positive correlation between proxy score and probability of correctness
+          <span class="src">Section 2.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">True precision/accuracy is typically monotonically decreasing/increasing in the cascade threshold (justifying η=0)
+          <span class="src">Section 3.2.2, Figure 6</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">For RT queries with β>0, positive labels are densely distributed toward high proxy scores so that R_D^β(ρ) ≈ R_D(ρ)
+          <span class="src">Section 4.2.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Explicit</span>
+        <span class="cmp-val">Records are processed independently (i.i.d. sampling assumption for statistical guarantees)
+          <span class="src">Section 2.3, Lemma 2.1</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#8b1a1a">L</span> Limitations</div>
+    <div class="card">
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">For RT queries, when the number of true positives is small, no approach can achieve high utility while guaranteeing meeting the recall target (impossibility result). BARGAIN_R-A relaxes guarantees to the dense subset.
+          <span class="src">Section 4.2.2, Section B.6.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Inferred</span>
+        <span class="cmp-val">Guarantees hold relative to the oracle model's outputs, not ground truth. If the oracle itself is inaccurate, BARGAIN's guarantees are with respect to the oracle's (potentially wrong) answers.
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">When proxy models are poorly calibrated (no correlation between proxy scores and correctness), the cascade framework provides low utility even though quality guarantees still hold.
+          <span class="src">Section 2.2</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Author-stated</span>
+        <span class="cmp-val">The method focuses on classification tasks (multiclass for AT, binary for PT/RT) and does not directly handle generation tasks like summarization or open-ended QA.
+          <span class="src">Section 2.1</span>
+        </span>
+      </div>
+      <div class="cmp">
+        <span class="cmp-label">Inferred</span>
+        <span class="cmp-val">Adaptive sampling requires the ability to sample from D^ρ (records with proxy score > ρ), which requires proxy scores to be computed upfront for all records.
+          <span class="src">Algorithm 2, Line 8</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="section-icon" style="background:#4a2d7a">X</span> Cross-Reference with Anchor Papers</div>
+    <div class="card">
+      <table>
+        <tr><th>Anchor Paper</th><th>Relationship</th><th>Detail</th><th>Source</th></tr>
+        <tr>
+          <td>bargain</td>
+          <td>Self</td>
+          <td>This is the BARGAIN paper itself.</td>
+          <td><span class="src">N/A</span></td>
+        </tr>
+        <tr>
+          <td>lotus</td>
+          <td>Shared Dataset</td>
+          <td>BARGAIN uses the &lt;strong&gt;NS (News Summarization)&lt;/strong&gt; dataset from the &lt;strong&gt;LOTUS benchmark&lt;/strong&gt; [33] for evaluation. LOTUS is also cited as a system that uses SUPG for filtering with quality guarantees.</td>
+          <td><span class="src">Section 6.1</span></td>
+        </tr>
+        <tr>
+          <td>task_cascades</td>
+          <td>Complements</td>
+          <td>The &lt;strong&gt;task cascade framework&lt;/strong&gt; [19] is cited as a related model cascade approach. BARGAIN notes that task cascades do not provide guarantees on meeting quality targets and frequently miss targets (e.g., precision below 65% when target is 90%).</td>
+          <td><span class="src">Section 1, Section 7</span></td>
+        </tr>
+        <tr>
+          <td>csv</td>
+          <td>Complements</td>
+          <td>Not directly cited in the paper, but BARGAIN&#39;s model cascade framework with proxy scores and threshold-based routing is conceptually related to semantic filter paradigms that go beyond linear LLM invocation.</td>
+          <td><span class="src">not_found</span></td>
+        </tr>
+        <tr>
+          <td>thriftllm</td>
+          <td>Complements</td>
+          <td>Not directly cited, but both address cost-effective LLM selection for classification. ThriftLLM focuses on selecting among multiple LLMs while BARGAIN focuses on cascade threshold setting between two models with statistical guarantees.</td>
+          <td><span class="src">not_found</span></td>
+        </tr>
+        <tr>
+          <td>scaledoc</td>
+          <td>Complements</td>
+          <td>Not directly cited, but both address scaling LLM-based processing over large document collections. BARGAIN provides the statistical framework for when to use cheap vs expensive models.</td>
+          <td><span class="src">not_found</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Deep Paper Review — Research Paper Toolkit v0.1</p>
+  <p>Extraction date: 2026-03-31 | Level 2 | <span class="src">source tags</span> indicate extraction provenance</p>
+  <p style="margin-top:0.5rem"><span class="src src-missing">orange tags</span> = information not found, needs verification</p>
+</div>
+
+</div>
+</body>
+</html>

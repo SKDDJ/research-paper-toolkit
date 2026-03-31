@@ -1,10 +1,21 @@
 [project]
 name = "research-paper-toolkit"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.2.0"
+description = "Skill directory for structured paper extraction, taxonomy management, and cross-paper comparison"
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",
     "jinja2>=3.1.6",
     "pyyaml>=6.0.3",
 ]
+
+[project.optional-dependencies]
+# For lightweight PDF text extraction (fallback when MineRU unavailable)
+pdf = [
+    "PyMuPDF>=1.24.0",
+]
+# MineRU v3.0 provides full structured PDF parsing (tables, figures, formulas)
+# Primary extraction backend for Level 2 deep review.
+# Install: uv pip install -U "mineru[all]"
+# Then download models: mineru-models-download
+# See: https://github.com/opendatalab/MinerU and references/mineru.md

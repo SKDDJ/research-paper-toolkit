@@ -47,9 +47,13 @@ uv run python scripts/deep_review.py --papers 2509.02896 2501.04901 --level 2 --
 
 ## Paper Content Source
 
-Primary: [ar5iv](https://ar5iv.labs.arxiv.org/) HTML with structured parsing — extracts tables (as row data + raw HTML), figures (as image URLs), formulas (as LaTeX from MathML alttext). Falls back to plain text if ar5iv unavailable.
+**Primary (Level 2):** Local PDF parsing via [MineRU](https://github.com/opendatalab/MinerU) — downloads arXiv PDF, runs `mineru` CLI locally, extracts structured Markdown with tables, formulas, and figures. Requires MineRU installed (`uv pip install -U "mineru[all]"`). See `references/mineru.md`.
 
-Future (Phase 2): MineRU PDF parser for non-arXiv papers.
+**Fallback:** [ar5iv](https://ar5iv.labs.arxiv.org/) HTML with structured parsing — used when MineRU is not installed or parsing fails.
+
+**User PDF:** `--pdf /path/to/paper.pdf` flag for non-arXiv papers or camera-ready versions.
+
+Content source is recorded in extraction JSON as `content_source`: `"pdf_arxiv"`, `"pdf_user"`, `"ar5iv"`, `"ar5iv_plain"`, or `"abstract_only"`.
 
 ## Anti-Hallucination
 

@@ -12,7 +12,10 @@ wheels/
 docs/
 .env
 
-# Generated data (reviews, reports)
+# Generated data (reviews, reports, downloaded papers)
 data/reviews/
 # data/reports/
+data/papers/
+data/papers/.mineru_cache_*/
+data/papers/.mineru_tmp_*/
 data/preferences.jsonl

@@ -17,15 +17,18 @@ Structured paper extraction, taxonomy management, and cross-paper comparison. Pr
 | Capability | Command | Details |
 |------------|---------|---------|
 | **Deep Review** | `uv run python scripts/deep_review.py --paper <id> --level <1\|2> --profile config/profiles/<name>.yaml` | See `references/deep-review.md` |
+| **Deep Review (PDF)** | `uv run python scripts/deep_review.py --paper <id> --level 2 --pdf /path/to/paper.pdf --profile ...` | Local PDF via MineRU |
 | **Batch Extract** | `uv run python scripts/deep_review.py --batch-anchor --level 2 --profile config/profiles/<name>.yaml` | Extract all anchor papers |
 | **Cross-Compare** | `uv run python scripts/cross_compare.py --anchor-papers --profile config/profiles/<name>.yaml` | See `references/cross-compare.md` |
 | **Taxonomy** | `uv run python scripts/taxonomy.py <action> ...` | See `references/taxonomy.md` (planned) |
 
 ## Deep Review (Working)
 
-Two-level extraction from arXiv papers:
+Two-level extraction from research papers (arXiv or local PDF):
 - **Level 1**: Cheap model, abstract-only → metadata + method summary (~2-3k tokens)
 - **Level 2**: Strong model, full paper text → framework mapping + formulas + figures + tables + analysis (~10-15k tokens)
+
+Content source priority for Level 2: MineRU PDF parsing (primary) → ar5iv HTML (fallback). MineRU runs locally via CLI — see `references/mineru.md`.
 
 Output: JSON (`data/reviews/`) + HTML report (`data/reports/reviews/`). For full details including schema fields and extraction options, read `references/deep-review.md`.
 

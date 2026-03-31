@@ -22,7 +22,7 @@ class LLMClient:
     def __init__(self, provider: str | None = None, api_key: str | None = None):
         self.provider = provider or os.environ.get("LLM_PROVIDER", "anthropic")
         self._api_key = api_key
-        self._http = httpx.Client(timeout=180)
+        self._http = httpx.Client(timeout=300)
 
     # -- public API ----------------------------------------------------------
 

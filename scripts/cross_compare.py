@@ -45,6 +45,26 @@ def load_extractions(paper_ids: list[str], reviews_dir: Path) -> list[dict]:
     return extractions
 
 
+_PLACEHOLDER_PHRASES = [
+    "unable to determine",
+    "paper content not available",
+    "conversion failure",
+    "not available due to",
+    "paper text unavailable",
+    "could not be extracted",
+    "state-of-the-art semantic filter approaches",  # generic CSV placeholder
+    "real-world datasets",  # generic CSV placeholder
+]
+
+
+def _is_placeholder(text: str) -> bool:
+    """Check if text is a placeholder/filler rather than real extracted content."""
+    if not text or not text.strip():
+        return True
+    lower = text.strip().lower()
+    return any(phrase in lower for phrase in _PLACEHOLDER_PHRASES)
+
+
 def _short_title(title: str | None, max_len: int = 40) -> str:
     """Truncate title for display."""
     if not title:
@@ -52,6 +72,88 @@ def _short_title(title: str | None, max_len: int = 40) -> str:
     if len(title) <= max_len:
         return title
     return title[:max_len - 3] + "..."
+
+
+def assess_extraction_quality(ext: dict) -> dict:
+    """Score extraction quality on a 0-1 scale.
+
+    Returns dict with: score (float), grade (str), issues (list[str]), content_source (str).
+    """
+    score = 1.0
+    issues = []
+    meta = ext.get("metadata", {})
+    method = ext.get("method", {})
+    experiments = ext.get("experiments", {})
+
+    # Metadata completeness
+    if not meta.get("title"):
+        score -= 0.2
+        issues.append("Missing title")
+    if not meta.get("authors"):
+        score -= 0.1
+        issues.append("Missing authors")
+
+    # Core contribution
+    cc = method.get("core_contribution") or ""
+    if not cc or _is_placeholder(cc):
+        score -= 0.2
+        issues.append("Missing or placeholder core contribution")
+
+    # Experiments
+    datasets = experiments.get("datasets", [])
+    real_datasets = [d for d in datasets if not _is_placeholder(d.get("name", ""))]
+    if not real_datasets:
+        score -= 0.2
+        issues.append("No real datasets extracted")
+
+    baselines = experiments.get("baselines", [])
+    real_baselines = [b for b in baselines if not _is_placeholder(b.get("name", ""))]
+    if not real_baselines:
+        score -= 0.15
+        issues.append("No real baselines extracted")
+
+    metrics = experiments.get("metrics", [])
+    if not metrics:
+        score -= 0.1
+        issues.append("No metrics extracted")
+
+    # Framework mapping quality
+    fm = method.get("framework_mapping", {})
+    placeholder_layers = 0
+    for key, entry in fm.items():
+        if isinstance(entry, dict):
+            choice = entry.get("choice", "") or ""
+            detail = entry.get("detail", "") or ""
+            if _is_placeholder(choice) and _is_placeholder(detail):
+                placeholder_layers += 1
+    if placeholder_layers > 0:
+        deduction = min(0.15, placeholder_layers * 0.03)
+        score -= deduction
+        if placeholder_layers >= 5:
+            issues.append(f"Framework mapping mostly placeholder ({placeholder_layers} layers)")
+
+    # Content source
+    content_source = ext.get("content_source", "unknown")
+    if content_source == "abstract_only":
+        score -= 0.1
+        issues.append("Extracted from abstract only")
+
+    score = max(0.0, score)
+
+    # Grade
+    if score >= 0.6:
+        grade = "good"
+    elif score >= 0.3:
+        grade = "partial"
+    else:
+        grade = "unusable"
+
+    return {
+        "score": round(score, 2),
+        "grade": grade,
+        "issues": issues,
+        "content_source": content_source,
+    }
 
 
 def build_comparison(extractions: list[dict], profile: dict) -> dict:
@@ -65,6 +167,7 @@ def build_comparison(extractions: list[dict], profile: dict) -> dict:
             if ap.get("arxiv_id") == meta.get("arxiv_id"):
                 short_id = ap.get("id", short_id)
                 break
+        quality = ext.get("_quality", {})
         papers.append({
             "short_id": short_id,
             "arxiv_id": meta.get("arxiv_id", ext.get("paper_id", "")),
@@ -75,6 +178,8 @@ def build_comparison(extractions: list[dict], profile: dict) -> dict:
             "year": meta.get("year", 0),
             "one_line_summary": meta.get("one_line_summary", ""),
             "code_url": meta.get("code_url"),
+            "quality_grade": quality.get("grade", ""),
+            "quality_score": quality.get("score", 0),
         })
 
     # Dataset matrix: collect all unique datasets across papers
@@ -82,7 +187,7 @@ def build_comparison(extractions: list[dict], profile: dict) -> dict:
     for ext, paper in zip(extractions, papers):
         for ds in ext.get("experiments", {}).get("datasets", []):
             name = ds.get("name", "").strip()
-            if not name:
+            if not name or _is_placeholder(name):
                 continue
             key = name.lower()
             if key not in all_datasets:
@@ -96,7 +201,7 @@ def build_comparison(extractions: list[dict], profile: dict) -> dict:
     for ext, paper in zip(extractions, papers):
         for bl in ext.get("experiments", {}).get("baselines", []):
             name = bl.get("name", "").strip()
-            if not name:
+            if not name or _is_placeholder(name):
                 continue
             key = name.lower()
             if key not in all_baselines:
@@ -110,7 +215,7 @@ def build_comparison(extractions: list[dict], profile: dict) -> dict:
     for ext, paper in zip(extractions, papers):
         for m in ext.get("experiments", {}).get("metrics", []):
             name = m.get("name", "").strip()
-            if not name:
+            if not name or _is_placeholder(name):
                 continue
             key = name.lower()
             if key not in all_metrics:
@@ -129,11 +234,17 @@ def build_comparison(extractions: list[dict], profile: dict) -> dict:
         for ext, paper in zip(extractions, papers):
             mapping = ext.get("method", {}).get("framework_mapping", {})
             entry = mapping.get(layer_key, {})
+            choice = entry.get("choice", "") or ""
+            detail = entry.get("detail", "") or ""
+            has_real_data = (
+                (bool(choice) and not _is_placeholder(choice)) or
+                (bool(detail) and not _is_placeholder(detail))
+            )
             row["papers"].append({
                 "short_id": paper["short_id"],
-                "choice": entry.get("choice", ""),
-                "detail": entry.get("detail", ""),
-                "has_data": bool(entry.get("choice") or entry.get("detail")),
+                "choice": choice,
+                "detail": detail,
+                "has_data": has_real_data,
             })
         # Count how many papers address this layer
         row["coverage"] = sum(1 for p in row["papers"] if p["has_data"])
@@ -187,15 +298,20 @@ def build_comparison(extractions: list[dict], profile: dict) -> dict:
     }
 
 
-def identify_gaps(comparison: dict) -> list[dict]:
+def identify_gaps(comparison: dict, quality_info: dict | None = None) -> list[dict]:
     """Identify research gaps from the comparison data."""
     gaps = []
     paper_count = len(comparison["papers"])
+    # Use usable paper count for thresholds (exclude unusable extractions)
+    if quality_info:
+        usable_count = sum(1 for q in quality_info.values() if q.get("grade") != "unusable")
+    else:
+        usable_count = paper_count
 
     # Gap type 1: Framework layers with low coverage
     for row in comparison.get("framework_overlay", []):
         coverage = row["coverage"]
-        if coverage <= paper_count // 3:  # Less than 1/3 of papers address this layer
+        if coverage <= usable_count // 3:  # Less than 1/3 of usable papers address this layer
             papers_with = [p["short_id"] for p in row["papers"] if p["has_data"]]
             papers_without = [p["short_id"] for p in row["papers"] if not p["has_data"]]
             gaps.append({
@@ -266,18 +382,50 @@ def main():
         print(f"ERROR: Need at least 2 extracted papers for comparison, got {len(extractions)}")
         sys.exit(1)
 
+    # Assess extraction quality
+    print("Assessing extraction quality...")
+    quality_info = {}
+    quality_warnings = []
+    for ext in extractions:
+        pid = ext.get("paper_id", "")
+        q = assess_extraction_quality(ext)
+        quality_info[pid] = q
+        # Find short_id from profile
+        short_id = pid
+        for ap in profile.get("anchor_papers", []):
+            if ap.get("arxiv_id") == pid:
+                short_id = ap.get("id", pid)
+                break
+        if q["grade"] != "good":
+            quality_warnings.append({
+                "paper": short_id,
+                "arxiv_id": pid,
+                "grade": q["grade"],
+                "score": q["score"],
+                "issues": q["issues"],
+                "content_source": q["content_source"],
+            })
+            print(f"  {short_id}: {q['grade']} (score={q['score']}, issues={q['issues']})")
+
+    # Inject quality grades into comparison data for template
+    for ext in extractions:
+        ext["_quality"] = quality_info.get(ext.get("paper_id", ""), {})
+
     print(f"Building comparison from {len(extractions)} papers...")
     comparison = build_comparison(extractions, profile)
 
     print("Identifying research gaps...")
-    gaps = identify_gaps(comparison)
+    gaps = identify_gaps(comparison, quality_info)
 
     # Render
+    usable = sum(1 for q in quality_info.values() if q["grade"] != "unusable")
     template_data = {
         **comparison,
         "gaps": gaps,
+        "quality_warnings": quality_warnings,
         "comparison_date": date.today().isoformat(),
         "total_papers": len(extractions),
+        "usable_papers": usable,
     }
 
     out_dir = PROJECT_ROOT / "data" / "reports" / "comparisons"
@@ -286,7 +434,8 @@ def main():
     render_report("cross_compare.html", template_data, out_path)
 
     print(f"\nComparison complete!")
-    print(f"  Papers compared: {len(extractions)}")
+    print(f"  Papers compared: {len(extractions)} ({usable} usable)")
+    print(f"  Quality warnings: {len(quality_warnings)}")
     print(f"  Gaps identified: {len(gaps)}")
     print(f"  HTML report: {out_path}")
 

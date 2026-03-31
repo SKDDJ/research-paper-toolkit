@@ -14,20 +14,28 @@
 - [x] Profile-driven design (no hardcoded researcher info)
 - [x] Git versioning (main + dev branches)
 
-## Phase 1.5: Remaining Core Features
+## Phase 1.5: Cross-Paper Comparison & Multi-Source
 - [x] Cross-paper comparison (cross_compare.py + comparison.html template)
 - [x] Batch extraction mode (--batch-anchor, --papers flags)
+- [x] Multi-source paper acquisition fallback chain (ar5iv → PDF download → MineRU → PyMuPDF → abstract-only)
+- [x] PDF download + caching in data/papers/ (arXiv PDF fallback)
+- [x] MineRU v3.0 CLI integration as primary Level 2 extraction backend
+- [x] MineRU output caching (data/papers/.mineru_cache_*)
+- [x] PyMuPDF (fitz) lightweight PDF text extraction fallback
+- [x] Metadata enrichment from Semantic Scholar + OpenAlex (venue, DOI, citation count)
+- [x] Cross-compare quality detection (placeholder filtering, quality scoring, grade badges)
+- [x] --pdf flag for user-provided PDFs
+- [x] --force flag for re-extraction
+- [x] content_source tracking in extraction results
 - [ ] Taxonomy management (taxonomy.py: init, bookmark, dismiss, show)
 - [ ] Daily scan script (port existing SKILL.md logic to Python)
 - [ ] Preference tracking (preferences.py + preferences.jsonl)
 
-## Phase 2: Rich Content & MineRU
-- [ ] MineRU PDF parser integration (magic-pdf as optional dep)
-  - Local PDF parsing for papers not on arXiv
-  - Extract figures as image files, tables as markdown, formulas as LaTeX
-  - Essential for fine-grained analysis of complex visualizations
-- [ ] PDF download + caching in data/pdfs/
-- [ ] Support non-arXiv papers (direct PDF URL, DOI lookup)
+## Phase 2: Rich Content & Non-arXiv Support
+- [ ] Support non-arXiv papers (direct PDF URL, DOI lookup via CrossRef)
+- [ ] User-uploaded PDF management (copy to data/papers/ with unified naming)
+- [ ] Extract figures as image files from MineRU output
+- [ ] PDF metadata index (data/papers/index.jsonl for tracking downloads)
 
 ## Phase 3: Interactive Frontend
 - [ ] Local localhost server for HTML reports with live interactions
